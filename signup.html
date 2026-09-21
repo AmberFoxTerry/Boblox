@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOBLOX - SIGN UP</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: white;
+            font-family: Arial, Helvetica, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .box {
+            width: 360px;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            background: #39b54a;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #2f9b3e;
+        }
+
+        #message {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        .login {
+            display: block;
+            margin-top: 18px;
+            text-align: center;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="box">
+        <h1>BOBLOX</h1>
+
+        <input
+            type="text"
+            id="username"
+            placeholder="Username"
+            maxlength="20"
+        >
+
+        <input
+            type="email"
+            id="email"
+            placeholder="Email"
+        >
+
+        <input
+            type="password"
+            id="password"
+            placeholder="Password"
+        >
+
+        <button onclick="createAccount()">
+            CREATE ACCOUNT
+        </button>
+
+        <div id="message"></div>
+
+        <a class="login" href="login.html">
+            Already have an account? Log in
+        </a>
+    </div>
+
+    <script>
+        const SUPABASE_URL = "https://dpcixdjggpulxlekrqqk.supabase.co";
+        const SUPABASE_KEY = "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
+
+        const { createClient } = supabase;
+
+        const db = createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+        async function createAccount() {
+            const username =
+                document.getElementById("username").value.trim();
+
+            const email =
+                document.getElementById("email").value.trim();
+
+            const password =
+                document.getElementById("password").value;
+
+            const message =
+                document.getElementById("message");
+
+            if (!username || !email || !password) {
+                message.textContent = "Fill in everything.";
+                return;
+            }
+
+            if (username.length < 3) {
+                message.textContent =
+                    "Username must be at least 3 characters.";
+                return;
+            }
+
+            if (password.length < 6) {
+                message.textContent =
+                    "Password must be at least 6 characters.";
+                return;
+            }
+
+            message.textContent = "Creating account...";
+
+            const { data, error } =
+                await db.auth.signUp({
+                    email: email,
+                    password: password
+                });
+
+            if (error) {
+                message.textContent = error.message;
+                return;
+            }
+
+            if (!data.user) {
+                message.textContent =
+                    "Account created. Check your email to continue.";
+                return;
+            }
+
+            const { error: profileError } =
+                await db
+                    .from("profiles")
+                    .insert({
+                        id: data.user.id,
+                        username: username,
+                        owned_colors: [],
+                        equipped_color: "gray"
+                    });
+
+            if (profileError) {
+                message.textContent =
+                    profileError.message;
+                return;
+            }
+
+            message.textContent =
+                "Account created!";
+
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1000);
+        }
+    </script>
+
+</body>
+</html>
