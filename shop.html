@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOBLOX - SHOP</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: white;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .topbar {
+            width: 100%;
+            height: 64px;
+            background: #f3f3f3;
+            display: flex;
+            align-items: center;
+            padding-left: 18px;
+            border-bottom: 1px solid #dedede;
+        }
+
+        .menu {
+            width: 28px;
+            height: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .menu span {
+            width: 100%;
+            height: 3px;
+            background: #111;
+            border-radius: 2px;
+        }
+
+        .logo {
+            margin-left: 18px;
+            font-size: 25px;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: -1px;
+            cursor: pointer;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: -280px;
+            width: 280px;
+            height: calc(100vh - 64px);
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            transition: left 0.2s ease;
+            padding: 20px 0;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 18px 24px;
+            color: #111;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sidebar a:hover {
+            background: #e5e5e5;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 30px;
+        }
+
+        .items {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .item {
+            width: 220px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            background: #fafafa;
+        }
+
+        .color-preview {
+            width: 100%;
+            height: 120px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+        }
+
+        .red {
+            background: red;
+        }
+
+        .green {
+            background: limegreen;
+        }
+
+        .blue {
+            background: blue;
+        }
+
+        .item-name {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .creator {
+            color: #555;
+            margin-bottom: 18px;
+        }
+
+        .verified {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            height: 18px;
+            margin-left: 4px;
+            background: #ff69b4;
+            color: white;
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .buy {
+            width: 100%;
+            border: none;
+            background: #ddd;
+            padding: 12px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .buy:hover {
+            background: #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="menu" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div class="logo" onclick="location.href='index.html'">
+            BOBLOX
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <a href="shop.html">Shop</a>
+        <a href="accesories.html">Customization</a>
+        <a href="settings.html">Settings</a>
+    </div>
+
+    <div class="content">
+        <h1>Shop</h1>
+
+        <div class="items">
+
+            <div class="item">
+                <div class="color-preview red"></div>
+                <div class="item-name">Red</div>
+                <div class="creator">
+                    Creator: Terry
+                    <span class="verified">✓</span>
+                </div>
+                <button class="buy" onclick="buyColor('red')">Free</button>
+            </div>
+
+            <div class="item">
+                <div class="color-preview green"></div>
+                <div class="item-name">Green</div>
+                <div class="creator">
+                    Creator: Terry
+                    <span class="verified">✓</span>
+                </div>
+                <button class="buy" onclick="buyColor('green')">Free</button>
+            </div>
+
+            <div class="item">
+                <div class="color-preview blue"></div>
+                <div class="item-name">Blue</div>
+                <div class="creator">
+                    Creator: Terry
+                    <span class="verified">✓</span>
+                </div>
+                <button class="buy" onclick="buyColor('blue')">Free</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("sidebar").classList.toggle("open");
+        }
+
+        function buyColor(color) {
+            let owned = JSON.parse(localStorage.getItem("boblox_owned") || "[]");
+
+            if (!owned.includes(color)) {
+                owned.push(color);
+                localStorage.setItem("boblox_owned", JSON.stringify(owned));
+            }
+
+            location.href = "accesories.html";
+        }
+    </script>
+
+</body>
+</html>
