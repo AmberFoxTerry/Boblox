@@ -8,17 +8,69 @@
   </head>
   <body>
     <header class="top-bar">
-      <div class="triple-bar" aria-label="Menu" role="img">
+      <button class="triple-bar" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="side-menu">
         <i></i>
         <i></i>
         <i></i>
-      </div>
+      </button>
       <h1>BOBLOX</h1>
       <div class="chat-bubble" aria-label="Chat" role="img">
         <span></span>
       </div>
     </header>
 
-    <main aria-label="Boblox content"></main>
+    <aside class="side-menu" id="side-menu" aria-label="Main menu" aria-hidden="true">
+      <nav class="side-nav">
+        <button class="nav-item active" type="button" data-view="shop">Shop</button>
+        <button class="nav-item" type="button" data-view="accessories">Accessories</button>
+        <button class="nav-item" type="button" data-view="settings">Settings</button>
+      </nav>
+    </aside>
+
+    <main class="page-content" aria-label="Boblox content">
+      <section class="appearance-card" aria-labelledby="appearance-title">
+        <h2 id="appearance-title">Appearance</h2>
+        <div class="character-preview" aria-label="Character preview">
+          <div class="character-cube" id="character-cube"></div>
+        </div>
+        <p class="current-color">Current color: <strong id="current-color">Light gray</strong></p>
+      </section>
+
+      <section class="view-section" id="shop-view" aria-labelledby="shop-title">
+        <h2 id="shop-title">Shop</h2>
+        <div class="product-grid">
+          <article class="product-card">
+            <div class="product-cube red-cube"></div>
+            <h3>Red Cube</h3>
+            <p class="publisher">by Boblox <span class="verified" aria-label="Verified">✓</span></p>
+            <div class="product-footer"><span>Free</span><button class="buy-button" type="button" data-color="red" data-name="Red">Buy</button></div>
+          </article>
+          <article class="product-card">
+            <div class="product-cube blue-cube"></div>
+            <h3>Blue Cube</h3>
+            <p class="publisher">by Boblox <span class="verified" aria-label="Verified">✓</span></p>
+            <div class="product-footer"><span>Free</span><button class="buy-button" type="button" data-color="blue" data-name="Blue">Buy</button></div>
+          </article>
+          <article class="product-card">
+            <div class="product-cube green-cube"></div>
+            <h3>Green Cube</h3>
+            <p class="publisher">by Boblox <span class="verified" aria-label="Verified">✓</span></p>
+            <div class="product-footer"><span>Free</span><button class="buy-button" type="button" data-color="green" data-name="Green">Buy</button></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="view-section hidden" id="accessories-view" aria-labelledby="accessories-title">
+        <h2 id="accessories-title">Accessories</h2>
+        <p class="empty-message">Your purchased colors will appear on your character in Appearance.</p>
+      </section>
+
+      <section class="view-section hidden" id="settings-view" aria-labelledby="settings-title">
+        <h2 id="settings-title">Settings</h2>
+        <p class="empty-message">Settings are coming soon.</p>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
   </body>
 </html>
