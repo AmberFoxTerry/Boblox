@@ -1,22 +1,71 @@
-<!doctype html>
+<!DOCTYPE html>
+
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BOBLOX</title>
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body data-page="home">
-    <header class="top-bar">
-      <button class="triple-bar" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="side-menu">
-        <i></i>
-        <i></i>
-        <i></i>
-      </button>
-      <a class="brand" href="index.html">BOBLOX</a>
-      <div class="chat-bubble" aria-label="Chat" role="img">
+
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: white;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .topbar {
+        width: 100%;
+        height: 64px;
+        background: #f3f3f3;
+        display: flex;
+        align-items: center;
+        padding-left: 18px;
+        border-bottom: 1px solid #dedede;
+    }
+
+    .menu {
+        width: 28px;
+        height: 22px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+
+    .menu span {
+        width: 100%;
+        height: 3px;
+        background: #111;
+        border-radius: 2px;
+    }
+
+    .logo {
+        margin-left: 18px;
+        font-size: 25px;
+        font-weight: 900;
+        color: #111;
+        letter-spacing: -1px;
+    }
+</style>
+
+</head>
+
+<body>
+
+<div class="topbar">
+    <div class="menu">
         <span></span>
-      </div>
-    </header>
-  </body>
+        <span></span>
+        <span></span>
+    </div>
+
+    <div class="logo">BOBLOX</div>
+</div>
+
+</body>
 </html>
