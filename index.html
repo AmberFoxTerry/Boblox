@@ -88,6 +88,7 @@
             padding: 5px 10px 5px 5px;
             border-radius: 25px;
             cursor: pointer;
+            user-select: none;
         }
 
         #profile:hover {
@@ -110,6 +111,41 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+
+        /* PROFILE MENU */
+
+        #profileMenu {
+            display: none;
+            position: absolute;
+            top: 56px;
+            right: 0;
+            width: 190px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        #profileMenu.open {
+            display: block;
+        }
+
+        .profileOption {
+            width: 100%;
+            padding: 14px 16px;
+            background: white;
+            border: none;
+            text-align: left;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .profileOption:hover {
+            background: #f1f1f1;
         }
 
         /* SIDEBAR */
@@ -166,9 +202,21 @@
                 LOGIN WITH DISCORD
             </button>
 
-            <div id="profile">
+            <div id="profile" onclick="toggleProfileMenu()">
                 <img id="profilePic" src="" alt="Profile picture">
                 <span id="profileName"></span>
+            </div>
+
+            <div id="profileMenu">
+
+                <button class="profileOption" onclick="viewProfile(event)">
+                    View Profile
+                </button>
+
+                <button class="profileOption" onclick="signOut(event)">
+                    Sign Out
+                </button>
+
             </div>
 
         </div>
@@ -214,6 +262,41 @@
             }
         }
 
+        function toggleProfileMenu() {
+
+            document
+                .getElementById("profileMenu")
+                .classList.toggle("open");
+        }
+
+        function viewProfile(event) {
+
+            event.stopPropagation();
+
+            window.location.href = "profile.html";
+        }
+
+        async function signOut(event) {
+
+            event.stopPropagation();
+
+            const { error } = await db.auth.signOut();
+
+            if (error) {
+                alert(error.message);
+                return;
+            }
+
+            document.getElementById("profileMenu")
+                .classList.remove("open");
+
+            document.getElementById("profile")
+                .style.display = "none";
+
+            document.getElementById("loginButton")
+                .style.display = "block";
+        }
+
         async function loadAccount() {
 
             const {
@@ -227,10 +310,11 @@
             const user = session.user;
             const metadata = user.user_metadata || {};
 
-            const username =
+            const displayName =
+                metadata.custom_claims?.global_name ||
+                metadata.global_name ||
                 metadata.full_name ||
                 metadata.name ||
-                metadata.preferred_username ||
                 "Boblox Player";
 
             const avatar =
@@ -238,20 +322,32 @@
                 metadata.picture ||
                 "";
 
-            document.getElementById("loginButton").style.display =
-                "none";
+            document.getElementById("loginButton")
+                .style.display = "none";
 
-            document.getElementById("profile").style.display =
-                "flex";
+            document.getElementById("profile")
+                .style.display = "flex";
 
-            document.getElementById("profileName").textContent =
-                username;
+            document.getElementById("profileName")
+                .textContent = displayName;
 
             if (avatar) {
-                document.getElementById("profilePic").src =
-                    avatar;
+                document.getElementById("profilePic")
+                    .src = avatar;
             }
         }
+
+        document.addEventListener("click", function(event) {
+
+            const account =
+                document.getElementById("account");
+
+            if (!account.contains(event.target)) {
+                document.getElementById("profileMenu")
+                    .classList.remove("open");
+            }
+
+        });
 
         loadAccount();
     </script>
