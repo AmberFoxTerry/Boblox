@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BOBLOX - ACCESSORIES</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: white;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .topbar {
+            width: 100%;
+            height: 64px;
+            background: #f3f3f3;
+            display: flex;
+            align-items: center;
+            padding-left: 18px;
+            border-bottom: 1px solid #dedede;
+        }
+
+        .menu {
+            width: 28px;
+            height: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .menu span {
+            width: 100%;
+            height: 3px;
+            background: #111;
+            border-radius: 2px;
+        }
+
+        .logo {
+            margin-left: 18px;
+            font-size: 25px;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: -1px;
+            cursor: pointer;
+        }
+
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: -280px;
+            width: 280px;
+            height: calc(100vh - 64px);
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            transition: left 0.2s ease;
+            padding: 20px 0;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 18px 24px;
+            color: #111;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sidebar a:hover {
+            background: #e5e5e5;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        h1 {
+            font-size: 32px;
+            margin-bottom: 25px;
+        }
+
+        .preview-box {
+            width: 100%;
+            max-width: 500px;
+            height: 260px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 35px;
+        }
+
+        .player {
+            width: 110px;
+            height: 110px;
+            background: #d3d3d3;
+            border: 2px solid #aaa;
+        }
+
+        .colors {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 500px;
+        }
+
+        .color {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 7px;
+            background: #fafafa;
+        }
+
+        .color-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .dot {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+        }
+
+        .red {
+            background: red;
+        }
+
+        .green {
+            background: limegreen;
+        }
+
+        .blue {
+            background: blue;
+        }
+
+        .gray {
+            background: #d3d3d3;
+        }
+
+        .creator {
+            font-size: 14px;
+            color: #666;
+            font-weight: normal;
+            margin-top: 3px;
+        }
+
+        .verified {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 17px;
+            height: 17px;
+            margin-left: 3px;
+            background: #ff69b4;
+            color: white;
+            border-radius: 50%;
+            font-size: 11px;
+            font-weight: bold;
+        }
+
+        button {
+            border: none;
+            background: #ddd;
+            padding: 9px 18px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #ccc;
+        }
+
+        button.equipped {
+            background: #222;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="topbar">
+        <div class="menu" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div class="logo" onclick="location.href='index.html'">
+            BOBLOX
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <a href="shop.html">Shop</a>
+        <a href="accesories.html">Customization</a>
+        <a href="settings.html">Settings</a>
+    </div>
+
+    <div class="content">
+        <h1>Customization</h1>
+
+        <div class="preview-box">
+            <div class="player" id="player"></div>
+        </div>
+
+        <div class="colors">
+
+            <div class="color">
+                <div class="color-info">
+                    <div class="dot red"></div>
+
+                    <div>
+                        Red
+                        <div class="creator">
+                            Creator: Terry
+                            <span class="verified">✓</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="equip('red')" id="redButton">Equip</button>
+            </div>
+
+            <div class="color">
+                <div class="color-info">
+                    <div class="dot green"></div>
+
+                    <div>
+                        Green
+                        <div class="creator">
+                            Creator: Terry
+                            <span class="verified">✓</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="equip('green')" id="greenButton">Equip</button>
+            </div>
+
+            <div class="color">
+                <div class="color-info">
+                    <div class="dot blue"></div>
+
+                    <div>
+                        Blue
+                        <div class="creator">
+                            Creator: Terry
+                            <span class="verified">✓</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="equip('blue')" id="blueButton">Equip</button>
+            </div>
+
+            <div class="color">
+                <div class="color-info">
+                    <div class="dot gray"></div>
+
+                    <div>
+                        Default Gray
+                        <div class="creator">
+                            BOBLOX Default
+                        </div>
+                    </div>
+                </div>
+
+                <button onclick="equip('gray')" id="grayButton">Equip</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("sidebar").classList.toggle("open");
+        }
+
+        function equip(color) {
+            localStorage.setItem("boblox_equipped", color);
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const equipped = localStorage.getItem("boblox_equipped") || "gray";
+            const player = document.getElementById("player");
+
+            player.style.background = equipped === "gray"
+                ? "#d3d3d3"
+                : equipped;
+
+            document.querySelectorAll("button").forEach(button => {
+                button.classList.remove("equipped");
+                button.textContent = "Equip";
+            });
+
+            const activeButton = document.getElementById(equipped + "Button");
+
+            if (activeButton) {
+                activeButton.classList.add("equipped");
+                activeButton.textContent = "Equipped";
+            }
+        }
+
+        updatePreview();
+    </script>
+
+</body>
+</html>
