@@ -1,69 +1,14 @@
-const menuButton = document.querySelector('.triple-bar');
-const sideMenu = document.querySelector('#side-menu');
-const characterCube = document.querySelector('#character-cube');
-const currentColorLabel = document.querySelector('#current-color');
-const buyButtons = document.querySelectorAll('.buy-button');
-const navItems = document.querySelectorAll('.nav-item');
-const views = document.querySelectorAll('.view-section');
-
-const savedState = JSON.parse(localStorage.getItem('bobloxState') || '{}');
-const state = {
-  color: savedState.color || 'lightgray',
-  ownedColors: new Set(savedState.ownedColors || []),
-};
-
-function saveState() {
-  localStorage.setItem('bobloxState', JSON.stringify({
-    color: state.color,
-    ownedColors: [...state.ownedColors],
-  }));
-}
-
-function updateAppearance() {
-  const colors = {
-    lightgray: { value: '#d9d9d9', name: 'Light gray' },
-    red: { value: '#ef4444', name: 'Red' },
-    blue: { value: '#3b82f6', name: 'Blue' },
-    green: { value: '#22c55e', name: 'Green' },
-  };
-  const selected = colors[state.color] || colors.lightgray;
-  characterCube.style.backgroundColor = selected.value;
-  currentColorLabel.textContent = selected.name;
-}
-
-function updateBuyButtons() {
-  buyButtons.forEach((button) => {
-    const owned = state.ownedColors.has(button.dataset.color);
-    button.disabled = owned;
-    button.classList.toggle('owned', owned);
-    button.textContent = owned ? 'Owned' : 'Buy';
-  });
-}
-
-menuButton.addEventListener('click', () => {
-  const isOpen = sideMenu.classList.toggle('is-open');
-  menuButton.setAttribute('aria-expanded', String(isOpen));
-  sideMenu.setAttribute('aria-hidden', String(!isOpen));
-});
-
-navItems.forEach((item) => {
-  item.addEventListener('click', () => {
-    const selectedView = item.dataset.view;
-    navItems.forEach((navItem) => navItem.classList.toggle('active', navItem === item));
-    views.forEach((view) => view.classList.toggle('hidden', view.id !== `${selectedView}-view`));
-  });
-});
-
-buyButtons.forEach((button) => {
-  button.addEventListener('click', () => {
-    const color = button.dataset.color;
-    state.ownedColors.add(color);
-    state.color = color;
-    saveState();
-    updateAppearance();
-    updateBuyButtons();
-  });
-});
-
-updateAppearance();
-updateBuyButtons();
+const COLORS = { lightgray: { label: 'Light gray', hex: '#cbd0d6' }, red: { label: 'Red', hex: '#ef4444' }, blue: { label: 'Blue', hex: '#3b82f6' }, green: { label: 'Green', hex: '#22c55e' } };
+const saved = JSON.parse(localStorage.getItem('bobloxState') || '{}');
+const state = { selected: saved.selected || null, owned: new Set(saved.owned || []) };
+function save() { localStorage.setItem('bobloxState', JSON.stringify({ selected: state.selected, owned: [...state.owned] })); }
+function colorHex() { return (COLORS[state.selected] || COLORS.lightgray).hex; }
+function paintAvatar(element) { if (!element) return; element.style.setProperty('--avatar-color', colorHex()); }
+function paintAll() { document.querySelectorAll('.avatar').forEach(paintAvatar); }
+function renderShop() { document.querySelectorAll('.buy-button').forEach((button) => { const owned = state.owned.has(button.dataset.color); button.textContent = owned ? (state.selected === button.dataset.color ? 'Wearing' : 'Owned') : 'Get'; button.classList.toggle('owned', owned); }); }
+function renderOwned() { const container = document.querySelector('#owned-colors'); if (!container) return; const items = [...state.owned]; container.innerHTML = items.length ? items.map((color) => `<button class="owned-item ${state.selected === color ? 'selected' : ''}" data-color="${color}" type="button"><span class="swatch ${color}-swatch"></span><span><strong>${COLORS[color].label}</strong><small>${state.selected === color ? 'Currently wearing' : 'Click to wear'}</small></span><span class="check">${state.selected === color ? '✓' : ''}</span></button>`).join('') : '<p class="empty-message">You do not own any colors yet. Visit the Shop to get one for free.</p>'; container.querySelectorAll('.owned-item').forEach((item) => item.addEventListener('click', () => { const color = item.dataset.color; state.selected = state.selected === color ? null : color; save(); renderOwned(); paintAll(); })); }
+const menu = document.querySelector('.triple-bar'); const side = document.querySelector('#side-menu');
+if (menu && side) menu.addEventListener('click', () => { const open = side.classList.toggle('is-open'); menu.setAttribute('aria-expanded', open); side.setAttribute('aria-hidden', !open); });
+document.querySelectorAll('.buy-button').forEach((button) => button.addEventListener('click', () => { const color = button.dataset.color; state.owned.add(color); state.selected = state.selected === color ? null : color; if (state.selected === null && state.owned.has(color)) { state.selected = color; } save(); renderShop(); paintAll(); }));
+const reset = document.querySelector('#reset-state'); if (reset) reset.addEventListener('click', () => { state.selected = null; save(); paintAll(); renderOwned(); renderShop(); });
+renderShop(); renderOwned(); paintAll();
