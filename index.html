@@ -1,71 +1,113 @@
 <!DOCTYPE html>
-
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOBLOX</title>
+    <title>BOBLOX - MENU</title>
 
-<style>
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-    body {
-        background: white;
-        font-family: Arial, Helvetica, sans-serif;
-    }
+        body {
+            background: white;
+            font-family: Arial, Helvetica, sans-serif;
+        }
 
-    .topbar {
-        width: 100%;
-        height: 64px;
-        background: #f3f3f3;
-        display: flex;
-        align-items: center;
-        padding-left: 18px;
-        border-bottom: 1px solid #dedede;
-    }
+        .topbar {
+            width: 100%;
+            height: 64px;
+            background: #f3f3f3;
+            display: flex;
+            align-items: center;
+            padding-left: 18px;
+            border-bottom: 1px solid #dedede;
+        }
 
-    .menu {
-        width: 28px;
-        height: 22px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        cursor: pointer;
-    }
+        .menu {
+            width: 28px;
+            height: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+        }
 
-    .menu span {
-        width: 100%;
-        height: 3px;
-        background: #111;
-        border-radius: 2px;
-    }
+        .menu span {
+            width: 100%;
+            height: 3px;
+            background: #111;
+            border-radius: 2px;
+        }
 
-    .logo {
-        margin-left: 18px;
-        font-size: 25px;
-        font-weight: 900;
-        color: #111;
-        letter-spacing: -1px;
-    }
-</style>
+        .logo {
+            margin-left: 18px;
+            font-size: 25px;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: -1px;
+            cursor: pointer;
+        }
 
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: -280px;
+            width: 280px;
+            height: calc(100vh - 64px);
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            transition: left 0.2s ease;
+            padding: 20px 0;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 18px 24px;
+            color: #111;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sidebar a:hover {
+            background: #e5e5e5;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="topbar">
-    <div class="menu">
-        <span></span>
-        <span></span>
-        <span></span>
+    <div class="topbar">
+        <div class="menu" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div class="logo" onclick="location.href='index.html'">
+            BOBLOX
+        </div>
     </div>
 
-    <div class="logo">BOBLOX</div>
-</div>
+    <div class="sidebar" id="sidebar">
+        <a href="shop.html">Shop</a>
+        <a href="accesories.html">Customization</a>
+        <a href="settings.html">Settings</a>
+    </div>
+
+    <script>
+        function toggleMenu() {
+            document.getElementById("sidebar").classList.toggle("open");
+        }
+    </script>
 
 </body>
 </html>
