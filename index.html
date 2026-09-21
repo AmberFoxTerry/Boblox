@@ -103,6 +103,12 @@
             background: #ddd;
         }
 
+        #profileNameContainer {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         #profileName {
             font-size: 15px;
             font-weight: 700;
@@ -111,6 +117,53 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+        }
+
+        /* VERIFICATION HEART */
+
+        .verified {
+            position: relative;
+            width: 18px;
+            height: 18px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: white;
+            font-size: 10px;
+            font-weight: 900;
+            line-height: 1;
+            z-index: 1;
+        }
+
+        .verified::before,
+        .verified::after {
+            content: "";
+            position: absolute;
+            top: 1px;
+            width: 10px;
+            height: 15px;
+            background: #ff69b4;
+            border-radius: 10px 10px 0 0;
+            z-index: -1;
+        }
+
+        .verified::before {
+            left: 8px;
+            transform: rotate(45deg);
+            transform-origin: 0 100%;
+        }
+
+        .verified::after {
+            left: 0;
+            transform: rotate(-45deg);
+            transform-origin: 100% 100%;
+        }
+
+        .verified span {
+            position: relative;
+            z-index: 2;
+            transform: translateY(1px);
         }
 
         /* PROFILE MENU */
@@ -203,17 +256,36 @@
             </button>
 
             <div id="profile" onclick="toggleProfileMenu()">
+
                 <img id="profilePic" src="" alt="Profile picture">
-                <span id="profileName"></span>
+
+                <div id="profileNameContainer">
+                    <span id="profileName"></span>
+
+                    <span
+                        id="verificationBadge"
+                        class="verified"
+                        style="display: none;"
+                    >
+                        <span>✓</span>
+                    </span>
+                </div>
+
             </div>
 
             <div id="profileMenu">
 
-                <button class="profileOption" onclick="viewProfile(event)">
+                <button
+                    class="profileOption"
+                    onclick="viewProfile(event)"
+                >
                     View Profile
                 </button>
 
-                <button class="profileOption" onclick="signOut(event)">
+                <button
+                    class="profileOption"
+                    onclick="signOut(event)"
+                >
                     Sign Out
                 </button>
 
@@ -235,6 +307,10 @@
 
         const SUPABASE_KEY =
             "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
+
+        const VERIFIED_UIDS = [
+            "ca2cdea0-9fbd-4380-a34b-e505540ade35"
+        ];
 
         const db = supabase.createClient(
             SUPABASE_URL,
@@ -311,8 +387,8 @@
             const metadata = user.user_metadata || {};
 
             const displayName =
-                metadata.custom_claims?.global_name ||
                 metadata.global_name ||
+                metadata.custom_claims?.global_name ||
                 metadata.full_name ||
                 metadata.name ||
                 "Boblox Player";
@@ -334,6 +410,11 @@
             if (avatar) {
                 document.getElementById("profilePic")
                     .src = avatar;
+            }
+
+            if (VERIFIED_UIDS.includes(user.id)) {
+                document.getElementById("verificationBadge")
+                    .style.display = "inline-flex";
             }
         }
 
