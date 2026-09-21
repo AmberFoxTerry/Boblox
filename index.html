@@ -12,19 +12,33 @@
       <a class="brand" href="index.html">BOBLOX</a>
       <div class="chat-bubble" aria-label="Chat" role="img"><span></span></div>
     </header>
+
     <aside class="side-menu" id="side-menu" aria-label="Main menu" aria-hidden="true">
-      <div class="menu-label">MENU</div>
+      <div class="menu-label">BOBLOX MENU</div>
       <nav class="side-nav">
-        <a class="nav-item" href="shop.html">Shop</a>
-        <a class="nav-item" href="accessories.html">Accessories</a>
-        <a class="nav-item" href="settings.html">Settings</a>
+        <a class="nav-item" href="shop.html"><span class="nav-icon">▦</span>Shop</a>
+        <a class="nav-item" href="accessories.html"><span class="nav-icon">◈</span>Accessories</a>
+        <a class="nav-item" href="settings.html"><span class="nav-icon">⚙</span>Settings</a>
       </nav>
+      <div class="menu-footer">Customize your world</div>
     </aside>
+    <div class="menu-backdrop" aria-hidden="true"></div>
+
     <main class="page-content home-page">
       <section class="hero-panel">
-        <div><p class="eyebrow">WELCOME TO</p><h1>BOBLOX</h1><p class="hero-copy">Build your look. Make it yours.</p><a class="primary-link" href="shop.html">Explore the shop <span>→</span></a></div>
-        <div class="avatar-stage small-stage"><div class="avatar" id="home-avatar" aria-label="Your character"></div></div>
+        <div class="hero-copy-block">
+          <p class="eyebrow">WELCOME TO</p>
+          <h1>BOBLOX</h1>
+          <p class="hero-copy">Build your look. Make it yours.</p>
+          <a class="primary-link" href="shop.html">Explore the shop <span>→</span></a>
+        </div>
+        <section class="preview-box" aria-labelledby="preview-title">
+          <div class="preview-header"><div><p class="eyebrow">YOUR AVATAR</p><h2 id="preview-title">Character preview</h2></div><button class="toggle-button" id="preview-toggle" type="button" aria-expanded="true">Hide</button></div>
+          <div class="avatar-stage" id="preview-content"><div class="avatar" id="home-avatar" aria-label="Your character"></div></div>
+          <div class="preview-footer"><span id="home-current-color">Light gray</span><a href="accessories.html">Edit appearance</a></div>
+        </section>
       </section>
+      <section class="cosmetics-panel"><div class="section-heading"><div><p class="eyebrow">YOUR COLLECTION</p><h2>Owned cosmetics</h2></div><a href="accessories.html">Manage all →</a></div><div class="cosmetic-strip" id="home-owned-colors"><p class="empty-message">No colors yet. Visit the Shop to claim your first free color.</p></div></section>
       <section class="quick-links"><a href="shop.html"><span class="quick-icon">◆</span><strong>Shop</strong><small>Find your next color</small></a><a href="accessories.html"><span class="quick-icon">✦</span><strong>Accessories</strong><small>Style your character</small></a></section>
     </main>
     <script src="app.js"></script>
