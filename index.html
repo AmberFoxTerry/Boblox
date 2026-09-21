@@ -106,7 +106,6 @@
         #profileNameContainer {
             display: flex;
             align-items: center;
-            gap: 4px;
         }
 
         #profileName {
@@ -119,51 +118,35 @@
             white-space: nowrap;
         }
 
-        /* VERIFICATION HEART */
+        /* VERIFIED HEART */
 
         .verified {
             position: relative;
-            width: 18px;
-            height: 18px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            width: 20px;
+            height: 20px;
+            margin-left: 4px;
             flex-shrink: 0;
-            color: white;
-            font-size: 10px;
-            font-weight: 900;
-            line-height: 1;
-            z-index: 1;
-        }
-
-        .verified::before,
-        .verified::after {
-            content: "";
-            position: absolute;
-            top: 1px;
-            width: 10px;
-            height: 15px;
-            background: #ff69b4;
-            border-radius: 10px 10px 0 0;
-            z-index: -1;
         }
 
         .verified::before {
-            left: 8px;
-            transform: rotate(45deg);
-            transform-origin: 0 100%;
-        }
-
-        .verified::after {
-            left: 0;
-            transform: rotate(-45deg);
-            transform-origin: 100% 100%;
+            content: "♥";
+            position: absolute;
+            color: #ff69b4;
+            font-size: 20px;
+            line-height: 20px;
         }
 
         .verified span {
             position: relative;
-            z-index: 2;
-            transform: translateY(1px);
+            z-index: 1;
+            color: white;
+            font-size: 9px;
+            font-weight: 900;
+            line-height: 1;
+            transform: translateY(-1px);
         }
 
         /* PROFILE MENU */
@@ -260,6 +243,7 @@
                 <img id="profilePic" src="" alt="Profile picture">
 
                 <div id="profileNameContainer">
+
                     <span id="profileName"></span>
 
                     <span
@@ -269,6 +253,7 @@
                     >
                         <span>✓</span>
                     </span>
+
                 </div>
 
             </div>
@@ -339,7 +324,6 @@
         }
 
         function toggleProfileMenu() {
-
             document
                 .getElementById("profileMenu")
                 .classList.toggle("open");
