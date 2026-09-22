@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoxxyDen - PROFILE</title>
+
+    <title>FoxxyDen - Profile</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -17,6 +18,7 @@
         body {
             background: white;
             font-family: Arial, Helvetica, sans-serif;
+            color: #111;
         }
 
         /* TOP BAR */
@@ -79,6 +81,10 @@
             cursor: pointer;
         }
 
+        #loginButton:hover {
+            background: #4752C4;
+        }
+
         #profile {
             display: none;
             align-items: center;
@@ -116,7 +122,7 @@
             white-space: nowrap;
         }
 
-        /* VERIFIED HEART */
+        /* VERIFICATION */
 
         .verified {
             position: relative;
@@ -217,183 +223,116 @@
         /* PROFILE CONTENT */
 
         .profilePage {
-            width: 100%;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 100px 60px 60px;
+            width: 90%;
+            max-width: 1100px;
+            margin: 140px auto 80px auto;
         }
 
-        .profileLayout {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 80px;
-            align-items: start;
+        .profileTop {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 60px;
         }
 
-        /* LEFT */
-
-        .profileInfo {
-            padding-top: 70px;
-        }
-
-        .userHeader {
+        .identity {
             display: flex;
             align-items: center;
             gap: 20px;
         }
 
-        .bigPfp {
-            width: 110px;
-            height: 110px;
+        .bigAvatar {
+            width: 120px;
+            height: 120px;
             border-radius: 50%;
             object-fit: cover;
             background: #ddd;
         }
 
-        .displayNameArea {
+        .identityName {
             display: flex;
             align-items: center;
         }
 
-        .displayName {
-            font-size: 30px;
-            font-weight: 800;
-            color: #111;
-        }
-
-        .userVerified {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 30px;
-            height: 30px;
-            margin-left: 7px;
-        }
-
-        .userVerified::before {
-            content: "♥";
-            position: absolute;
-            color: #ff69b4;
-            font-size: 30px;
-            line-height: 30px;
-        }
-
-        .userVerified span {
-            position: relative;
-            z-index: 1;
-            color: white;
-            font-size: 14px;
+        .identityName span.name {
+            font-size: 32px;
             font-weight: 900;
         }
 
-        /* RIGHT CHARACTER */
-
-        .characterSection {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .characterTitle {
-            font-size: 22px;
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
+        /* CHARACTER PREVIEW */
 
         .characterPreview {
-            width: 240px;
-            height: 240px;
+            width: 260px;
+            height: 260px;
+            border: 1px solid #ddd;
+            background: #f5f5f5;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #777;
         }
 
-        .characterCube {
-            width: 130px;
-            height: 130px;
-            background: #d3d3d3;
-            border: 2px solid #aaa;
-        }
-
-        /* SPLITTERS */
-
-        .splitter {
+        .divider {
             width: 100%;
             height: 1px;
             background: #ddd;
-            margin: 45px 0 25px;
+            margin: 50px 0 30px 0;
         }
 
-        .sectionTitle {
-            font-size: 20px;
-            font-weight: 800;
-            margin-bottom: 18px;
+        h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
         }
 
-        /* WEARING */
+        /* CURRENTLY WEARING */
 
         .wearing {
-            min-height: 80px;
-            color: #666;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            color: #777;
+            font-size: 16px;
         }
 
         /* BIO */
 
         .bio {
-            color: #333;
+            min-height: 80px;
+            font-size: 17px;
             line-height: 1.5;
             white-space: pre-wrap;
+            color: #333;
         }
 
-        .bioEditor {
-            width: 100%;
-            min-height: 120px;
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            resize: vertical;
-            font-family: Arial, Helvetica, sans-serif;
-            font-size: 15px;
+        .emptyBio {
+            color: #999;
+            font-style: italic;
         }
 
-        .saveBio {
-            margin-top: 10px;
-            padding: 10px 18px;
-            border: none;
-            border-radius: 5px;
-            background: #111;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-        }
+        @media (max-width: 700px) {
 
-        .saveBio:hover {
-            background: #333;
-        }
+            .profileTop {
+                flex-direction: column;
+                align-items: flex-start;
+            }
 
-        .hidden {
-            display: none;
-        }
+            .characterPreview {
+                width: 100%;
+                max-width: 260px;
+            }
 
-        @media (max-width: 800px) {
             .profilePage {
-                padding: 60px 25px;
-            }
-
-            .profileLayout {
-                grid-template-columns: 1fr;
-                gap: 40px;
-            }
-
-            .profileInfo {
-                padding-top: 0;
+                margin-top: 90px;
             }
         }
     </style>
 </head>
 
 <body>
+
+    <!-- TOP BAR -->
 
     <div class="topbar">
 
@@ -409,13 +348,23 @@
 
         <div id="account">
 
-            <button id="loginButton" onclick="loginWithDiscord()">
+            <button
+                id="loginButton"
+                onclick="loginWithDiscord()"
+            >
                 LOGIN WITH DISCORD
             </button>
 
-            <div id="profile" onclick="toggleProfileMenu()">
+            <div
+                id="profile"
+                onclick="toggleProfileMenu()"
+            >
 
-                <img id="profilePic" src="" alt="Profile picture">
+                <img
+                    id="profilePic"
+                    src=""
+                    alt="Profile picture"
+                >
 
                 <div id="profileNameContainer">
 
@@ -455,114 +404,112 @@
 
     </div>
 
-    <div class="sidebar" id="sidebar">
-        <a href="shop.html">Shop</a>
-        <a href="accessories.html">Customization</a>
-        <a href="settings.html">Settings</a>
+
+    <!-- SIDEBAR -->
+
+    <div
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <a href="shop.html">
+            Shop
+        </a>
+
+        <a href="customazition.html">
+            Customization
+        </a>
+
+        <a href="settings.html">
+            Settings
+        </a>
+
     </div>
+
+
+    <!-- PROFILE -->
 
     <main class="profilePage">
 
-        <div class="profileLayout">
+        <section class="profileTop">
 
-            <section class="profileInfo">
+            <div class="identity">
 
-                <div class="userHeader">
-
-                    <img
-                        id="bigPfp"
-                        class="bigPfp"
-                        src=""
-                        alt="Profile picture"
-                    >
-
-                    <div class="displayNameArea">
-
-                        <span
-                            id="displayName"
-                            class="displayName"
-                        >
-                            Player
-                        </span>
-
-                        <span
-                            id="userVerified"
-                            class="userVerified"
-                            style="display: none;"
-                        >
-                            <span>✓</span>
-                        </span>
-
-                    </div>
-
-                </div>
-
-                <div class="splitter"></div>
-
-                <div class="sectionTitle">
-                    Bio
-                </div>
-
-                <div
-                    id="bioDisplay"
-                    class="bio"
+                <img
+                    id="bigAvatar"
+                    class="bigAvatar"
+                    src=""
+                    alt="Profile picture"
                 >
-                    No bio yet.
-                </div>
 
-                <div
-                    id="bioEditor"
-                    class="hidden"
-                >
-                    <textarea
-                        id="bioInput"
-                        class="bioEditor"
-                        maxlength="500"
-                        placeholder="Write something about yourself..."
-                    ></textarea>
+                <div class="identityName">
 
-                    <button
-                        class="saveBio"
-                        onclick="saveBio()"
+                    <span
+                        id="displayName"
+                        class="name"
                     >
-                        Save Bio
-                    </button>
-                </div>
+                        Player
+                    </span>
 
-            </section>
-
-            <section class="characterSection">
-
-                <div class="characterTitle">
-                    Character
-                </div>
-
-                <div class="characterPreview">
-
-                    <div
-                        id="characterCube"
-                        class="characterCube"
-                    ></div>
+                    <span
+                        id="bigVerificationBadge"
+                        class="verified"
+                        style="display: none;"
+                    >
+                        <span>✓</span>
+                    </span>
 
                 </div>
 
-                <div class="splitter"></div>
+            </div>
 
-                <div class="sectionTitle">
-                    Currently wearing
-                </div>
 
-                <div class="wearing">
-                    Nothing equipped.
-                </div>
+            <div
+                id="characterPreview"
+                class="characterPreview"
+            >
+                Character
+            </div>
 
-            </section>
+        </section>
 
+
+        <div class="divider"></div>
+
+
+        <h2>
+            Currently wearing
+        </h2>
+
+        <div
+            id="wearing"
+            class="wearing"
+        >
+            Nothing equipped.
+        </div>
+
+
+        <div class="divider"></div>
+
+
+        <h2>
+            Bio
+        </h2>
+
+        <div
+            id="bio"
+            class="bio"
+        >
+            <span class="emptyBio">
+                No bio yet.
+            </span>
         </div>
 
     </main>
 
+
     <script>
+
         const SUPABASE_URL =
             "https://dpcixdjggpulxlekrqqk.supabase.co";
 
@@ -578,29 +525,37 @@
             SUPABASE_KEY
         );
 
+
         let currentUser = null;
 
+
         function toggleMenu() {
+
             document
                 .getElementById("sidebar")
                 .classList.toggle("open");
         }
 
+
         async function loginWithDiscord() {
 
             const { error } =
                 await db.auth.signInWithOAuth({
+
                     provider: "discord",
+
                     options: {
                         redirectTo:
-                            "https://amberfoxterry.github.io/Boblox/profile.html"
+                            "https://amberfoxterry.github.io/FoxxyDen/profile.html"
                     }
+
                 });
 
             if (error) {
                 alert(error.message);
             }
         }
+
 
         function toggleProfileMenu() {
 
@@ -609,12 +564,15 @@
                 .classList.toggle("open");
         }
 
+
         function viewProfile(event) {
 
             event.stopPropagation();
 
-            window.location.href = "profile.html";
+            window.location.href =
+                "profile.html";
         }
+
 
         async function signOut(event) {
 
@@ -624,12 +582,15 @@
                 await db.auth.signOut();
 
             if (error) {
+
                 alert(error.message);
                 return;
             }
 
-            window.location.href = "index.html";
+            window.location.href =
+                "index.html";
         }
+
 
         async function loadAccount() {
 
@@ -646,123 +607,119 @@
             const metadata =
                 currentUser.user_metadata || {};
 
+
             const displayName =
                 metadata.global_name ||
                 metadata.custom_claims?.global_name ||
                 metadata.full_name ||
                 metadata.name ||
-                "Boblox Player";
+                "Player";
+
 
             const avatar =
                 metadata.avatar_url ||
                 metadata.picture ||
                 "";
 
-            document.getElementById("loginButton")
+
+            document
+                .getElementById("loginButton")
                 .style.display = "none";
 
-            document.getElementById("profile")
+
+            document
+                .getElementById("profile")
                 .style.display = "flex";
 
-            document.getElementById("profileName")
+
+            document
+                .getElementById("profileName")
                 .textContent = displayName;
 
+
             if (avatar) {
-                document.getElementById("profilePic")
+
+                document
+                    .getElementById("profilePic")
                     .src = avatar;
 
-                document.getElementById("bigPfp")
+                document
+                    .getElementById("bigAvatar")
                     .src = avatar;
             }
 
-            document.getElementById("displayName")
+
+            document
+                .getElementById("displayName")
                 .textContent = displayName;
+
 
             if (VERIFIED_UIDS.includes(currentUser.id)) {
 
-                document.getElementById("verificationBadge")
+                document
+                    .getElementById("verificationBadge")
                     .style.display = "inline-flex";
 
-                document.getElementById("userVerified")
+                document
+                    .getElementById("bigVerificationBadge")
                     .style.display = "inline-flex";
             }
 
-            loadProfileData();
+
+            await loadProfile();
         }
 
-        async function loadProfileData() {
+
+        async function loadProfile() {
 
             if (!currentUser) {
                 return;
             }
 
-            const {
-                data,
-                error
-            } = await db
-                .from("profiles")
-                .select("bio")
-                .eq("id", currentUser.id)
-                .maybeSingle();
+
+            const { data, error } =
+                await db
+                    .from("profiles")
+                    .select("bio, owned")
+                    .eq("uuid", currentUser.id)
+                    .single();
+
 
             if (error) {
-                console.log("Profile load error:", error);
+
+                console.error(
+                    "Could not load profile:",
+                    error
+                );
+
                 return;
             }
 
-            if (data && data.bio) {
 
-                document.getElementById("bioDisplay")
-                    .textContent = data.bio;
+            const bioElement =
+                document.getElementById("bio");
 
-                document.getElementById("bioInput")
-                    .value = data.bio;
+
+            if (data.bio && data.bio.trim() !== "") {
+
+                bioElement.textContent =
+                    data.bio;
 
             } else {
 
-                document.getElementById("bioDisplay")
-                    .textContent = "No bio yet.";
+                bioElement.innerHTML =
+                    '<span class="emptyBio">No bio yet.</span>';
             }
 
-            document.getElementById("bioEditor")
-                .classList.remove("hidden");
 
+            /*
+                Character rendering will be connected
+                to the owned/equipment system later.
+
+                data.owned contains the user's owned items.
+            */
         }
 
-        async function saveBio() {
-
-            if (!currentUser) {
-                return;
-            }
-
-            const bio =
-                document.getElementById("bioInput")
-                    .value
-                    .trim();
-
-            const {
-                error
-            } = await db
-                .from("profiles")
-                .upsert({
-                    id: currentUser.id,
-                    bio: bio
-                });
-
-            if (error) {
-                alert(
-                    "Could not save bio: " +
-                    error.message
-                );
-                return;
-            }
-
-            document.getElementById("bioDisplay")
-                .textContent =
-                bio || "No bio yet.";
-
-            alert("Bio saved!");
-        }
 
         document.addEventListener(
             "click",
@@ -778,10 +735,13 @@
                         .classList
                         .remove("open");
                 }
+
             }
         );
 
+
         loadAccount();
+
     </script>
 
 </body>
