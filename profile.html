@@ -581,6 +581,7 @@
 
 
         let currentUser = null;
+        let viewedUser = null;
 
 
         function toggleMenu() {
@@ -646,6 +647,11 @@
         }
 
 
+        /*
+            Loads YOUR account in the top-right corner.
+            This is separate from the profile being viewed.
+        */
+
         async function loadAccount() {
 
             const {
@@ -661,12 +667,6 @@
             const metadata =
                 currentUser.user_metadata || {};
 
-
-            /*
-                Discord Display Name.
-                We intentionally do NOT use user_name.
-            */
-
             const displayName =
                 metadata.global_name ||
                 metadata.custom_claims?.global_name ||
@@ -674,38 +674,141 @@
                 metadata.name ||
                 "Player";
 
-
             const avatar =
                 metadata.avatar_url ||
                 metadata.picture ||
                 "";
 
-
             document
                 .getElementById("loginButton")
                 .style.display = "none";
-
 
             document
                 .getElementById("profile")
                 .style.display = "flex";
 
-
             document
                 .getElementById("profileName")
                 .textContent = displayName;
-
 
             if (avatar) {
 
                 document
                     .getElementById("profilePic")
                     .src = avatar;
+            }
+
+            if (VERIFIED_UIDS.includes(currentUser.id)) {
 
                 document
-                    .getElementById("bigAvatar")
-                    .src = avatar;
+                    .getElementById("verificationBadge")
+                    .style.display = "inline-flex";
             }
+        }
+
+
+        /*
+            If there is ?user=UUID in the URL,
+            load that user's public profile.
+
+            If there isn't one, load your own profile.
+        */
+
+        async function loadProfile() {
+
+            const params =
+                new URLSearchParams(
+                    window.location.search
+                );
+
+            const requestedUser =
+                params.get("user");
+
+
+            let profileUUID;
+
+
+            if (requestedUser) {
+
+                profileUUID =
+                    requestedUser;
+
+            } else {
+
+                if (!currentUser) {
+                    return;
+                }
+
+                profileUUID =
+                    currentUser.id;
+            }
+
+
+            const { data, error } =
+                await db
+                    .from("profiles")
+                    .select(
+                        "uuid, username, display_name, avatar_url, bio, owned"
+                    )
+                    .eq("uuid", profileUUID)
+                    .single();
+
+
+            if (error || !data) {
+
+                console.error(
+                    "Could not load profile:",
+                    error
+                );
+
+                document
+                    .getElementById("displayName")
+                    .textContent = "Profile not found";
+
+                return;
+            }
+
+
+            viewedUser =
+                data;
+
+
+            /*
+                Display name.
+
+                For the current user, use the exact
+                Discord metadata principle already used
+                elsewhere.
+
+                For another user, use the public
+                display_name saved in their profile.
+            */
+
+            let displayName =
+                data.display_name ||
+                data.username ||
+                "Player";
+
+
+            if (
+                !requestedUser &&
+                currentUser
+            ) {
+
+                const metadata =
+                    currentUser.user_metadata || {};
+
+                displayName =
+                    metadata.global_name ||
+                    metadata.custom_claims?.global_name ||
+                    metadata.full_name ||
+                    metadata.name ||
+                    displayName;
+            }
+
+
+            const avatar =
+                data.avatar_url || "";
 
 
             document
@@ -713,53 +816,45 @@
                 .textContent = displayName;
 
 
-            if (VERIFIED_UIDS.includes(currentUser.id)) {
+            if (avatar) {
 
                 document
-                    .getElementById("verificationBadge")
-                    .style.display = "inline-flex";
+                    .getElementById("bigAvatar")
+                    .src = avatar;
+            }
+
+
+            /*
+                Verification badge.
+            */
+
+            if (
+                VERIFIED_UIDS.includes(
+                    data.uuid
+                )
+            ) {
 
                 document
-                    .getElementById("bigVerificationBadge")
-                    .style.display = "inline-flex";
+                    .getElementById(
+                        "bigVerificationBadge"
+                    )
+                    .style.display =
+                        "inline-flex";
             }
 
 
-            await loadProfile();
-        }
-
-
-        async function loadProfile() {
-
-            if (!currentUser) {
-                return;
-            }
-
-
-            const { data, error } =
-                await db
-                    .from("profiles")
-                    .select("bio, owned")
-                    .eq("uuid", currentUser.id)
-                    .single();
-
-
-            if (error) {
-
-                console.error(
-                    "Could not load profile:",
-                    error
-                );
-
-                return;
-            }
-
+            /*
+                Bio.
+            */
 
             const bioElement =
                 document.getElementById("bio");
 
 
-            if (data.bio && data.bio.trim() !== "") {
+            if (
+                data.bio &&
+                data.bio.trim() !== ""
+            ) {
 
                 bioElement.textContent =
                     data.bio;
@@ -770,6 +865,13 @@
                     '<span class="emptyBio">No bio yet.</span>';
             }
 
+
+            /*
+                Currently wearing.
+
+                The existing default gray item
+                remains exactly as it is for now.
+            */
         }
 
 
@@ -792,7 +894,15 @@
         );
 
 
-        loadAccount();
+        async function initialize() {
+
+            await loadAccount();
+
+            await loadProfile();
+        }
+
+
+        initialize();
 
     </script>
 
