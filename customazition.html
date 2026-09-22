@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOBLOX - CUSTOMAZITION</title>
+    <title>FoxxyDen - CUSTOMAZITION</title>
 
     <style>
         * {
@@ -62,6 +62,7 @@
             border-right: 1px solid #ddd;
             transition: left 0.2s ease;
             padding: 20px 0;
+            z-index: 10;
         }
 
         .sidebar.open {
@@ -141,18 +142,6 @@
             border-radius: 4px;
         }
 
-        .red {
-            background: red;
-        }
-
-        .green {
-            background: limegreen;
-        }
-
-        .blue {
-            background: blue;
-        }
-
         .gray {
             background: #d3d3d3;
         }
@@ -164,23 +153,10 @@
             margin-top: 3px;
         }
 
-        .verified {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 17px;
-            height: 17px;
-            margin-left: 3px;
-            background: #ff69b4;
-            color: white;
-            border-radius: 50%;
-            font-size: 11px;
-            font-weight: bold;
-        }
-
         button {
             border: none;
-            background: #ddd;
+            background: #222;
+            color: white;
             padding: 9px 18px;
             border-radius: 5px;
             font-weight: bold;
@@ -188,12 +164,11 @@
         }
 
         button:hover {
-            background: #ccc;
+            background: #333;
         }
 
         button.equipped {
-            background: #222;
-            color: white;
+            background: #555;
         }
     </style>
 </head>
@@ -201,153 +176,151 @@
 <body>
 
     <div class="topbar">
+
         <div class="menu" onclick="toggleMenu()">
             <span></span>
             <span></span>
             <span></span>
         </div>
 
-        <div class="logo" onclick="location.href='index.html'">
-            BOBLOX
+        <div
+            class="logo"
+            onclick="location.href='index.html'"
+        >
+            FoxxyDen
         </div>
+
     </div>
+
 
     <div class="sidebar" id="sidebar">
-        <a href="shop.html">Shop</a>
-        <a href="customazition.html">Customization</a>
-        <a href="settings.html">Settings</a>
+
+        <a href="shop.html">
+            Shop
+        </a>
+
+        <a href="customazition.html">
+            Customization
+        </a>
+
+        <a href="settings.html">
+            Settings
+        </a>
+
     </div>
+
 
     <div class="content">
-        <h1>Customization</h1>
+
+        <h1>
+            Customization
+        </h1>
+
 
         <div class="preview-box">
-            <div class="player" id="player"></div>
+
+            <div
+                class="player"
+                id="player"
+            ></div>
+
         </div>
 
-        <div class="colors" id="colors"></div>
+
+        <div
+            class="colors"
+            id="colors"
+        ></div>
+
     </div>
 
+
     <script>
+
         function toggleMenu() {
-            document.getElementById("sidebar").classList.toggle("open");
+
+            document
+                .getElementById("sidebar")
+                .classList.toggle("open");
+
         }
 
-        const colorData = {
-            red: {
-                name: "Red",
-                creator: "Creator: Terry"
-            },
 
-            green: {
-                name: "Green",
-                creator: "Creator: Terry"
-            },
+        function equipGray() {
 
-            blue: {
-                name: "Blue",
-                creator: "Creator: Terry"
-            }
-        };
+            localStorage.setItem(
+                "foxxyden_equipped",
+                "gray"
+            );
 
-        function equip(color) {
-            localStorage.setItem("boblox_equipped", color);
             updatePreview();
+
         }
+
 
         function updatePreview() {
-            const equipped =
-                localStorage.getItem("boblox_equipped") || "gray";
 
-            const player = document.getElementById("player");
+            const player =
+                document.getElementById("player");
 
-            if (equipped === "gray") {
-                player.style.background = "#d3d3d3";
-            } else {
-                player.style.background = equipped;
-            }
+            player.style.background =
+                "#d3d3d3";
 
-            document.querySelectorAll("button").forEach(button => {
-                button.classList.remove("equipped");
-                button.textContent = "Equip";
-            });
 
-            const activeButton =
-                document.getElementById(equipped + "Button");
+            const button =
+                document.getElementById("grayButton");
 
-            if (activeButton) {
-                activeButton.classList.add("equipped");
-                activeButton.textContent = "Equipped";
-            }
+            button.classList.add("equipped");
+
+            button.textContent =
+                "Equipped";
+
         }
 
-        function loadColors() {
-            const owned = JSON.parse(
-                localStorage.getItem("boblox_owned") || "[]"
-            );
 
-            const container = document.getElementById("colors");
+        function loadCustomization() {
 
-            container.innerHTML = "";
+            const container =
+                document.getElementById("colors");
 
-            createColor(
-                "gray",
-                "Default Gray",
-                "BOBLOX Default",
-                false
-            );
+            container.innerHTML = `
 
-            owned.forEach(color => {
-                if (colorData[color]) {
-                    createColor(
-                        color,
-                        colorData[color].name,
-                        colorData[color].creator,
-                        true
-                    );
-                }
-            });
+                <div class="color">
 
-            updatePreview();
-        }
+                    <div class="color-info">
 
-        function createColor(color, name, creator, verified) {
-            const container = document.getElementById("colors");
+                        <div class="dot gray"></div>
 
-            const item = document.createElement("div");
-            item.className = "color";
+                        <div>
 
-            let creatorHTML = creator;
+                            Default Gray
 
-            if (verified) {
-                creatorHTML += ' <span class="verified">✓</span>';
-            }
+                            <div class="creator">
+                                FoxxyDen Default
+                            </div>
 
-            item.innerHTML = `
-                <div class="color-info">
-                    <div class="dot ${color}"></div>
-
-                    <div>
-                        ${name}
-
-                        <div class="creator">
-                            ${creatorHTML}
                         </div>
+
                     </div>
+
+                    <button
+                        id="grayButton"
+                        onclick="equipGray()"
+                    >
+                        Equipped
+                    </button>
+
                 </div>
 
-                <button
-                    id="${color}Button"
-                    onclick="equip('${color}')"
-                >
-                    Equip
-                </button>
             `;
 
-            container.appendChild(item);
+            updatePreview();
+
         }
 
-        loadColors();
+
+        loadCustomization();
+
     </script>
 
 </body>
