@@ -23,8 +23,61 @@
 
         canvas {
             display: block;
-            width: 100vw;
+        }
+
+        #chat {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 300px;
             height: 100vh;
+            background: #f3f3f3;
+            border-left: 1px solid #ccc;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chatMessages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .message {
+            margin-bottom: 12px;
+            word-wrap: break-word;
+        }
+
+        .messageName {
+            font-size: 14px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 3px;
+        }
+
+        .messageText {
+            font-size: 14px;
+            color: #333;
+        }
+
+        #chatInputArea {
+            padding: 10px;
+            border-top: 1px solid #ccc;
+            background: white;
+        }
+
+        #chatInput {
+            width: 100%;
+            height: 40px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 0 11px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        #chatInput:focus {
+            border-color: #999;
         }
     </style>
 </head>
@@ -33,10 +86,24 @@
 
 <canvas id="game"></canvas>
 
-<script>
-const canvas = document.getElementById("game");
-const ctx = canvas.getContext("2d");
+<div id="chat">
 
+    <div id="chatMessages"></div>
+
+    <div id="chatInputArea">
+        <input
+            id="chatInput"
+            type="text"
+            placeholder="Type a message..."
+            maxlength="200"
+            autocomplete="off"
+        >
+    </div>
+
+</div>
+
+
+<script>
 
 /* =========================
    SUPABASE
@@ -58,9 +125,22 @@ const db = supabase.createClient(
    CANVAS
 ========================= */
 
+const canvas =
+    document.getElementById("game");
+
+const ctx =
+    canvas.getContext("2d");
+
+const CHAT_WIDTH = 300;
+
 function resize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+
+    canvas.width =
+        window.innerWidth -
+        CHAT_WIDTH;
+
+    canvas.height =
+        window.innerHeight;
 }
 
 window.addEventListener(
@@ -76,14 +156,35 @@ resize();
 ========================= */
 
 const room = {
-    x: 100,
-    y: 100,
-    width: 1200,
+    width: 1100,
     height: 600,
 
     floorHeight: 40,
-    wallWidth: 40
+    wallWidth: 40,
+
+    x: 0,
+    y: 0
 };
+
+
+function positionRoom() {
+
+    room.x =
+        (canvas.width -
+            room.width) / 2;
+
+    room.y =
+        (canvas.height -
+            room.height) / 2;
+
+    if (room.x < 20) {
+        room.x = 20;
+    }
+
+    if (room.y < 20) {
+        room.y = 20;
+    }
+}
 
 
 /* =========================
@@ -91,8 +192,9 @@ const room = {
 ========================= */
 
 const player = {
-    x: 300,
-    y: 400,
+
+    x: 0,
+    y: 0,
 
     width: 50,
     height: 50,
@@ -107,12 +209,28 @@ const player = {
 
     displayName: "Player",
 
-    color: "#5865F2"
+    /* Default character */
+    color: "#999"
 };
 
 
+/* Put player in room */
+
+function positionPlayer() {
+
+    player.x =
+        room.x + 250;
+
+    player.y =
+        room.y +
+        room.height -
+        room.floorHeight -
+        player.height;
+}
+
+
 /* =========================
-   LOAD ACCOUNT
+   ACCOUNT
 ========================= */
 
 async function loadPlayer() {
@@ -162,14 +280,12 @@ window.addEventListener(
             keys.a = true;
         }
 
-
         if (
             event.key === "d" ||
             event.key === "D"
         ) {
             keys.d = true;
         }
-
 
         if (event.code === "Space") {
 
@@ -203,14 +319,12 @@ window.addEventListener(
             keys.a = false;
         }
 
-
         if (
             event.key === "d" ||
             event.key === "D"
         ) {
             keys.d = false;
         }
-
 
         if (event.code === "Space") {
             keys.space = false;
@@ -228,24 +342,20 @@ const gravity = 0.6;
 
 function update() {
 
-    /* Horizontal movement */
-
     player.velocityX = 0;
-
 
     if (keys.a) {
         player.velocityX =
             -player.speed;
     }
 
-
     if (keys.d) {
         player.velocityX =
             player.speed;
     }
 
-
-    player.x += player.velocityX;
+    player.x +=
+        player.velocityX;
 
 
     /* Left wall */
@@ -256,7 +366,6 @@ function update() {
 
 
     if (player.x < leftWall) {
-
         player.x = leftWall;
     }
 
@@ -271,16 +380,17 @@ function update() {
 
 
     if (player.x > rightWall) {
-
         player.x = rightWall;
     }
 
 
     /* Gravity */
 
-    player.velocityY += gravity;
+    player.velocityY +=
+        gravity;
 
-    player.y += player.velocityY;
+    player.y +=
+        player.velocityY;
 
 
     /* Floor */
@@ -340,7 +450,8 @@ function draw() {
 
     /* Background */
 
-    ctx.fillStyle = "#181818";
+    ctx.fillStyle =
+        "#181818";
 
     ctx.fillRect(
         0,
@@ -352,7 +463,8 @@ function draw() {
 
     /* Room */
 
-    ctx.fillStyle = "#f3f3f3";
+    ctx.fillStyle =
+        "#f3f3f3";
 
     ctx.fillRect(
         room.x,
@@ -364,7 +476,8 @@ function draw() {
 
     /* Floor */
 
-    ctx.fillStyle = "#d0d0d0";
+    ctx.fillStyle =
+        "#d0d0d0";
 
     ctx.fillRect(
         room.x,
@@ -376,9 +489,13 @@ function draw() {
     );
 
 
-    /* Left wall */
+    /* Walls */
 
-    ctx.fillStyle = "#c0c0c0";
+    ctx.fillStyle =
+        "#c0c0c0";
+
+
+    /* Left */
 
     ctx.fillRect(
         room.x,
@@ -388,7 +505,7 @@ function draw() {
     );
 
 
-    /* Right wall */
+    /* Right */
 
     ctx.fillRect(
         room.x +
@@ -410,7 +527,9 @@ function draw() {
     );
 
 
-    /* Player */
+    /* =========================
+       PLAYER
+    ========================= */
 
     ctx.fillStyle =
         player.color;
@@ -427,8 +546,12 @@ function draw() {
        COSMETICS
     ========================= */
 
-    // Nothing equipped yet.
-    // Cosmetic layers will be drawn here later.
+    /*
+        Nothing equipped yet.
+
+        Future cosmetics will be
+        drawn here.
+    */
 
 
     /* =========================
@@ -451,7 +574,8 @@ function draw() {
 
 
     const nameY =
-        player.y - 8;
+        player.y -
+        8;
 
 
     const textWidth =
@@ -464,7 +588,6 @@ function draw() {
 
     ctx.fillStyle =
         "rgba(0, 0, 0, 0.65)";
-
 
     ctx.fillRect(
         nameX -
@@ -481,13 +604,123 @@ function draw() {
     ctx.fillStyle =
         "white";
 
-
     ctx.fillText(
         player.displayName,
         nameX,
         nameY
     );
 }
+
+
+/* =========================
+   CHAT
+========================= */
+
+const chatInput =
+    document.getElementById(
+        "chatInput"
+    );
+
+const chatMessages =
+    document.getElementById(
+        "chatMessages"
+    );
+
+
+function addChatMessage(
+    name,
+    message
+) {
+
+    const container =
+        document.createElement(
+            "div"
+        );
+
+    container.className =
+        "message";
+
+
+    const nameElement =
+        document.createElement(
+            "div"
+        );
+
+    nameElement.className =
+        "messageName";
+
+    nameElement.textContent =
+        name;
+
+
+    const textElement =
+        document.createElement(
+            "div"
+        );
+
+    textElement.className =
+        "messageText";
+
+    textElement.textContent =
+        message;
+
+
+    container.appendChild(
+        nameElement
+    );
+
+    container.appendChild(
+        textElement
+    );
+
+
+    chatMessages.appendChild(
+        container
+    );
+
+
+    chatMessages.scrollTop =
+        chatMessages.scrollHeight;
+}
+
+
+chatInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (
+            event.key !== "Enter"
+        ) {
+            return;
+        }
+
+
+        const message =
+            chatInput.value.trim();
+
+
+        if (!message) {
+            return;
+        }
+
+
+        addChatMessage(
+            player.displayName,
+            message
+        );
+
+
+        chatInput.value = "";
+    }
+);
+
+
+/* =========================
+   START
+========================= */
+
+positionRoom();
+positionPlayer();
 
 
 /* =========================
@@ -507,6 +740,7 @@ function gameLoop() {
 
 
 gameLoop();
+
 </script>
 
 </body>
