@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOBLOX - MENU</title>
+    <title>FoxxyDen - MENU</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -130,7 +130,7 @@
             margin-left: 5px;
             flex-shrink: 0;
         }
-        
+
         .verified::before {
             content: "♥";
             position: absolute;
@@ -138,7 +138,7 @@
             font-size: 26px;
             line-height: 26px;
         }
-        
+
         .verified span {
             position: relative;
             z-index: 1;
@@ -229,7 +229,7 @@
         </div>
 
         <div class="logo" onclick="location.href='index.html'">
-            BOBLOX
+            FoxxyDen
         </div>
 
         <div id="account">
@@ -240,7 +240,11 @@
 
             <div id="profile" onclick="toggleProfileMenu()">
 
-                <img id="profilePic" src="" alt="Profile picture">
+                <img
+                    id="profilePic"
+                    src=""
+                    alt="Profile picture"
+                >
 
                 <div id="profileNameContainer">
 
@@ -281,9 +285,19 @@
     </div>
 
     <div class="sidebar" id="sidebar">
-        <a href="shop.html">Shop</a>
-        <a href="accessories.html">Customization</a>
-        <a href="settings.html">Settings</a>
+
+        <a href="shop.html">
+            Shop
+        </a>
+
+        <a href="customazition.html">
+            Customization
+        </a>
+
+        <a href="settings.html">
+            Settings
+        </a>
+
     </div>
 
     <script>
@@ -303,6 +317,7 @@
         );
 
         function toggleMenu() {
+
             document
                 .getElementById("sidebar")
                 .classList.toggle("open");
@@ -310,13 +325,15 @@
 
         async function loginWithDiscord() {
 
-            const { error } = await db.auth.signInWithOAuth({
-                provider: "discord",
-                options: {
-                    redirectTo:
-                        "https://amberfoxterry.github.io/Boblox/index.html"
-                }
-            });
+            const { error } =
+                await db.auth.signInWithOAuth({
+                    provider: "discord",
+
+                    options: {
+                        redirectTo:
+                            "https://amberfoxterry.github.io/FoxxyDen/index.html"
+                    }
+                });
 
             if (error) {
                 alert(error.message);
@@ -324,6 +341,7 @@
         }
 
         function toggleProfileMenu() {
+
             document
                 .getElementById("profileMenu")
                 .classList.toggle("open");
@@ -333,27 +351,32 @@
 
             event.stopPropagation();
 
-            window.location.href = "profile.html";
+            window.location.href =
+                "profile.html";
         }
 
         async function signOut(event) {
 
             event.stopPropagation();
 
-            const { error } = await db.auth.signOut();
+            const { error } =
+                await db.auth.signOut();
 
             if (error) {
                 alert(error.message);
                 return;
             }
 
-            document.getElementById("profileMenu")
+            document
+                .getElementById("profileMenu")
                 .classList.remove("open");
 
-            document.getElementById("profile")
+            document
+                .getElementById("profile")
                 .style.display = "none";
 
-            document.getElementById("loginButton")
+            document
+                .getElementById("loginButton")
                 .style.display = "block";
         }
 
@@ -368,51 +391,64 @@
             }
 
             const user = session.user;
-            const metadata = user.user_metadata || {};
+            const metadata =
+                user.user_metadata || {};
 
             const displayName =
                 metadata.global_name ||
                 metadata.custom_claims?.global_name ||
                 metadata.full_name ||
                 metadata.name ||
-                "Boblox Player";
+                "Player";
 
             const avatar =
                 metadata.avatar_url ||
                 metadata.picture ||
                 "";
 
-            document.getElementById("loginButton")
+            document
+                .getElementById("loginButton")
                 .style.display = "none";
 
-            document.getElementById("profile")
+            document
+                .getElementById("profile")
                 .style.display = "flex";
 
-            document.getElementById("profileName")
+            document
+                .getElementById("profileName")
                 .textContent = displayName;
 
             if (avatar) {
-                document.getElementById("profilePic")
+
+                document
+                    .getElementById("profilePic")
                     .src = avatar;
             }
 
             if (VERIFIED_UIDS.includes(user.id)) {
-                document.getElementById("verificationBadge")
+
+                document
+                    .getElementById("verificationBadge")
                     .style.display = "inline-flex";
             }
         }
 
-        document.addEventListener("click", function(event) {
+        document.addEventListener(
+            "click",
+            function(event) {
 
-            const account =
-                document.getElementById("account");
+                const account =
+                    document.getElementById("account");
 
-            if (!account.contains(event.target)) {
-                document.getElementById("profileMenu")
-                    .classList.remove("open");
+                if (!account.contains(event.target)) {
+
+                    document
+                        .getElementById("profileMenu")
+                        .classList
+                        .remove("open");
+                }
             }
-
-        });
+        );
 
         loadAccount();
     </script>
