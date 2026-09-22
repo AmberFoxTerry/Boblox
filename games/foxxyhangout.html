@@ -66,8 +66,9 @@ canvas {
 
     display: flex;
     align-items: center;
+    justify-content: space-between;
 
-    padding: 0 16px;
+    padding: 0 10px 0 16px;
 
     font-size: 20px;
     font-weight: 800;
@@ -77,6 +78,25 @@ canvas {
     border-bottom: 1px solid #d0d0d0;
 
     background: #f5f5f5;
+}
+
+#leaveButton {
+    border: none;
+    background: #e53935;
+    color: white;
+
+    font-size: 13px;
+    font-weight: 800;
+
+    padding: 8px 12px;
+
+    border-radius: 6px;
+
+    cursor: pointer;
+}
+
+#leaveButton:hover {
+    background: #c62828;
 }
 
 #chatMessages {
@@ -142,7 +162,16 @@ canvas {
 <div id="chat">
 
     <div id="chatHeader">
-        Chat
+
+        <span>Chat</span>
+
+        <button
+            id="leaveButton"
+            type="button"
+        >
+            Leave
+        </button>
+
     </div>
 
     <div id="chatMessages"></div>
@@ -200,16 +229,19 @@ const chatInput =
 const chatMessages =
     document.getElementById("chatMessages");
 
+const leaveButton =
+    document.getElementById("leaveButton");
+
 
 /* =========================
-   PLAYER ID
+   PLAYER
 ========================= */
 
 const playerId =
     crypto.randomUUID();
 
-
-let playerName = "Player";
+let playerName =
+    "Player";
 
 
 /* =========================
@@ -260,16 +292,14 @@ const otherPlayers = {};
 ========================= */
 
 const keys = {
-
     a: false,
     d: false,
     space: false
-
 };
 
 
 /* =========================
-   CAMERA / ROOM POSITION
+   ROOM POSITION
 ========================= */
 
 let roomX = 0;
@@ -282,6 +312,8 @@ let roomY = 0;
 
 let multiplayerChannel = null;
 
+let leaving = false;
+
 
 /* =========================
    LOAD PLAYER
@@ -289,33 +321,69 @@ let multiplayerChannel = null;
 
 async function loadPlayer() {
 
-    const {
-        data: {
-            session
-        }
-    } = await db.auth.getSession();
+    try {
 
-    if (!session) {
+        const {
+            data: {
+                session
+            }
+        } = await db.auth.getSession();
+
+
+        if (!session) {
+
+            playerName =
+                "Player";
+
+            startMultiplayer();
+
+            return;
+        }
+
+
+        const metadata =
+            session.user.user_metadata || {};
+
+
+        /*
+         * Discord display name
+         */
+
+        playerName =
+            metadata.global_name ||
+            metadata.custom_claims?.global_name ||
+            metadata.full_name ||
+            metadata.name ||
+            "Player";
+
+
+        /*
+         * Make absolutely sure
+         * the canvas uses the new name.
+         */
+
+        if (
+            !playerName ||
+            playerName.trim() === ""
+        ) {
+            playerName = "Player";
+        }
+
+
+        startMultiplayer();
+
+    } catch (error) {
+
+        console.error(
+            "Could not load player:",
+            error
+        );
 
         playerName =
             "Player";
 
         startMultiplayer();
-
-        return;
     }
-
-    const metadata =
-        session.user.user_metadata || {};
-
-    playerName =
-        metadata.global_name ||
-        metadata.custom_claims?.global_name ||
-        metadata.full_name ||
-        metadata.name ||
-        "Player";
-
-    startMultiplayer();
 }
 
 loadPlayer();
@@ -359,24 +427,32 @@ resize();
 
 function startMultiplayer() {
 
+    if (leaving) {
+        return;
+    }
+
+
     multiplayerChannel =
         db.channel(
             "foxxy-hangout-main",
             {
                 config: {
+
                     broadcast: {
                         self: false
                     },
+
                     presence: {
                         key: playerId
                     }
+
                 }
             }
         );
 
 
     /*
-     * Someone sends their position
+     * Player positions
      */
 
     multiplayerChannel.on(
@@ -399,6 +475,7 @@ function startMultiplayer() {
                 return;
             }
 
+
             otherPlayers[data.id] = {
 
                 id: data.id,
@@ -414,6 +491,7 @@ function startMultiplayer() {
                     Number(data.y) || 0,
 
                 width: 50,
+
                 height: 50,
 
                 color:
@@ -427,7 +505,7 @@ function startMultiplayer() {
 
 
     /*
-     * Someone leaves
+     * Player leaves
      */
 
     multiplayerChannel.on(
@@ -440,24 +518,27 @@ function startMultiplayer() {
             const left =
                 payload.leftPresences || [];
 
-            left.forEach(function(
-                presence
-            ) {
 
-                const id =
-                    presence.id ||
-                    presence.key;
+            left.forEach(
+                function(presence) {
 
-                if (id) {
-                    delete otherPlayers[id];
+                    const id =
+                        presence.id ||
+                        presence.key;
+
+                    if (id) {
+
+                        delete
+                            otherPlayers[id];
+                    }
                 }
-            });
+            );
         }
     );
 
 
     /*
-     * Multiplayer chat
+     * Chat
      */
 
     multiplayerChannel.on(
@@ -474,7 +555,21 @@ function startMultiplayer() {
                 return;
             }
 
+
+            /*
+             * Don't show our own message
+             * twice.
+             */
+
+            if (
+                data.id === playerId
+            ) {
+                return;
+            }
+
+
             addChatMessage(
+
                 data.name ||
                 "Player",
 
@@ -492,9 +587,13 @@ function startMultiplayer() {
     multiplayerChannel.subscribe(
         async function(status) {
 
-            if (status !== "SUBSCRIBED") {
+            if (
+                status !==
+                "SUBSCRIBED"
+            ) {
                 return;
             }
+
 
             await multiplayerChannel.track({
 
@@ -503,6 +602,7 @@ function startMultiplayer() {
                 name: playerName
 
             });
+
 
             sendPlayerPosition();
         }
@@ -516,9 +616,13 @@ function startMultiplayer() {
 
 function sendPlayerPosition() {
 
-    if (!multiplayerChannel) {
+    if (
+        !multiplayerChannel ||
+        leaving
+    ) {
         return;
     }
+
 
     multiplayerChannel.send({
 
@@ -541,10 +645,6 @@ function sendPlayerPosition() {
     });
 }
 
-
-/*
- * Send movement roughly 20 times/sec
- */
 
 setInterval(
     sendPlayerPosition,
@@ -612,13 +712,16 @@ chatInput.addEventListener(
     function(event) {
 
         if (
-            event.key !== "Enter"
+            event.key !==
+            "Enter"
         ) {
             return;
         }
 
+
         const message =
             chatInput.value.trim();
+
 
         if (!message) {
             return;
@@ -626,7 +729,7 @@ chatInput.addEventListener(
 
 
         /*
-         * Show locally immediately
+         * Show own message
          */
 
         addChatMessage(
@@ -639,7 +742,9 @@ chatInput.addEventListener(
          * Send to everyone else
          */
 
-        if (multiplayerChannel) {
+        if (
+            multiplayerChannel
+        ) {
 
             multiplayerChannel.send({
 
@@ -675,7 +780,7 @@ window.addEventListener(
     function(event) {
 
         /*
-         * No movement while
+         * Disable movement while
          * typing in chat.
          */
 
@@ -721,6 +826,7 @@ window.addEventListener(
                     false;
             }
 
+
             keys.space = true;
 
             event.preventDefault();
@@ -762,8 +868,8 @@ window.addEventListener(
 
 
 /*
- * Stop movement immediately
- * when chat gets focus.
+ * Clear movement when chat
+ * receives focus.
  */
 
 chatInput.addEventListener(
@@ -780,11 +886,72 @@ chatInput.addEventListener(
 
 
 /* =========================
+   LEAVE
+========================= */
+
+leaveButton.addEventListener(
+    "click",
+    async function() {
+
+        if (leaving) {
+            return;
+        }
+
+        leaving = true;
+
+
+        /*
+         * Stop movement.
+         */
+
+        keys.a = false;
+        keys.d = false;
+        keys.space = false;
+
+
+        /*
+         * Disconnect from room.
+         */
+
+        if (
+            multiplayerChannel
+        ) {
+
+            try {
+
+                await
+                    db.removeChannel(
+                        multiplayerChannel
+                    );
+
+            } catch (error) {
+
+                console.error(
+                    "Leave error:",
+                    error
+                );
+            }
+
+            multiplayerChannel =
+                null;
+        }
+
+
+        /*
+         * Return to FoxxyDen.
+         */
+
+        window.location.href =
+            "../index.html";
+    }
+);
+
+
+/* =========================
    GAME UPDATE
 ========================= */
 
 function update() {
-
 
     /*
      * Horizontal movement
@@ -889,8 +1056,7 @@ function update() {
 
 
     /*
-     * Remove players that haven't
-     * sent anything for 5 seconds.
+     * Remove stale players.
      */
 
     const now =
@@ -899,17 +1065,20 @@ function update() {
 
     Object.keys(
         otherPlayers
-    ).forEach(function(id) {
+    ).forEach(
+        function(id) {
 
-        if (
-            now -
-            otherPlayers[id].lastSeen >
-            5000
-        ) {
+            if (
+                now -
+                otherPlayers[id].lastSeen >
+                5000
+            ) {
 
-            delete otherPlayers[id];
+                delete
+                    otherPlayers[id];
+            }
         }
-    });
+    );
 }
 
 
@@ -923,10 +1092,6 @@ function drawPlayer(
     offsetY
 ) {
 
-    /*
-     * Name background
-     */
-
     ctx.font =
         "bold 16px Arial";
 
@@ -935,7 +1100,8 @@ function drawPlayer(
 
 
     const name =
-        p.name || "Player";
+        p.name ||
+        "Player";
 
 
     const nameWidth =
@@ -959,6 +1125,10 @@ function drawPlayer(
         p.y -
         10;
 
+
+    /*
+     * Name background
+     */
 
     ctx.fillStyle =
         "rgba(0,0,0,0.65)";
@@ -1060,7 +1230,7 @@ function draw() {
 
 
     /*
-     * Outside world
+     * Outside
      */
 
     ctx.fillStyle =
@@ -1068,8 +1238,10 @@ function draw() {
 
 
     ctx.fillRect(
+
         0,
         0,
+
         canvas.width,
         canvas.height
     );
@@ -1151,25 +1323,37 @@ function draw() {
 
     Object.keys(
         otherPlayers
-    ).forEach(function(id) {
+    ).forEach(
+        function(id) {
 
-        drawPlayer(
+            drawPlayer(
 
-            otherPlayers[id],
+                otherPlayers[id],
 
-            roomX,
-            roomY
-        );
-    });
+                roomX,
+                roomY
+            );
+        }
+    );
 
 
     /*
-     * Local player
+     * Our player
      */
 
     drawPlayer(
 
-        player,
+        {
+            x: player.x,
+            y: player.y,
+
+            width: player.width,
+            height: player.height,
+
+            color: player.color,
+
+            name: playerName
+        },
 
         roomX,
         roomY
