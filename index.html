@@ -11,68 +11,95 @@
     <style>
         * {
             box-sizing: border-box;
+            margin: 0;
+            padding: 0;
         }
 
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
             background: white;
+            font-family: Arial, Helvetica, sans-serif;
             color: #111;
         }
 
+        /* TOP BAR */
+
         .topbar {
+            width: 100%;
             height: 64px;
             background: #f3f3f3;
             display: flex;
             align-items: center;
-            padding: 0 20px;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-        }
-
-        .menuButton {
-            width: 42px;
-            height: 42px;
-            border: none;
-            background: transparent;
-            font-size: 25px;
-            cursor: pointer;
-            margin-right: 15px;
-        }
-
-        .logo {
-            font-size: 24px;
-            font-weight: 800;
-        }
-
-        .account {
-            margin-left: auto;
-            display: flex;
-            align-items: center;
+            padding-left: 18px;
+            border-bottom: 1px solid #dedede;
             position: relative;
         }
 
-        .loginButton {
-            border: none;
-            background: #111;
-            color: white;
-            padding: 10px 16px;
-            border-radius: 6px;
+        .menu {
+            width: 28px;
+            height: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
             cursor: pointer;
-            font-weight: 700;
         }
 
-        .profile {
+        .menu span {
+            width: 100%;
+            height: 3px;
+            background: #111;
+            border-radius: 2px;
+        }
+
+        .logo {
+            margin-left: 18px;
+            font-size: 25px;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: -1px;
+            cursor: pointer;
+        }
+
+        /* ACCOUNT */
+
+        #account {
+            position: absolute;
+            right: 18px;
+            top: 8px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+        }
+
+        #loginButton {
+            background: #5865F2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 11px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #loginButton:hover {
+            background: #4752C4;
+        }
+
+        #profile {
             display: none;
             align-items: center;
             gap: 9px;
+            padding: 5px 10px 5px 5px;
+            border-radius: 25px;
             cursor: pointer;
+            user-select: none;
         }
 
-        .profilePic {
+        #profile:hover {
+            background: #e5e5e5;
+        }
+
+        #profilePic {
             width: 38px;
             height: 38px;
             border-radius: 50%;
@@ -80,9 +107,22 @@
             background: #ddd;
         }
 
-        .profileName {
-            font-weight: 700;
+        #profileNameContainer {
+            display: flex;
+            align-items: center;
         }
+
+        #profileName {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111;
+            max-width: 160px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* VERIFICATION */
 
         .verified {
             position: relative;
@@ -113,47 +153,54 @@
             transform: translateY(-1px);
         }
 
-        .profileMenu {
+        /* PROFILE MENU */
+
+        #profileMenu {
             display: none;
             position: absolute;
+            top: 56px;
             right: 0;
-            top: 52px;
-            width: 180px;
+            width: 190px;
             background: white;
             border: 1px solid #ddd;
-            border-radius: 7px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
             overflow: hidden;
+            z-index: 100;
         }
 
-        .profileMenu.open {
+        #profileMenu.open {
             display: block;
         }
 
-        .profileMenu button {
+        .profileOption {
             width: 100%;
-            border: none;
+            padding: 14px 16px;
             background: white;
+            border: none;
             text-align: left;
-            padding: 13px;
+            font-size: 15px;
+            font-weight: 600;
             cursor: pointer;
-            font-size: 14px;
         }
 
-        .profileMenu button:hover {
-            background: #f3f3f3;
+        .profileOption:hover {
+            background: #f1f1f1;
         }
+
+        /* SIDEBAR */
 
         .sidebar {
             position: fixed;
             top: 64px;
             left: -280px;
             width: 280px;
-            bottom: 0;
-            background: #f3f3f3;
+            height: calc(100vh - 64px);
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
             transition: left 0.2s ease;
-            z-index: 900;
-            padding: 20px;
+            padding: 20px 0;
+            z-index: 10;
         }
 
         .sidebar.open {
@@ -162,30 +209,30 @@
 
         .sidebar a {
             display: block;
+            padding: 18px 24px;
             color: #111;
             text-decoration: none;
-            font-weight: 700;
-            padding: 13px 10px;
-            border-radius: 6px;
-            margin-bottom: 5px;
+            font-size: 18px;
+            font-weight: 600;
         }
 
         .sidebar a:hover {
-            background: #ddd;
+            background: #e5e5e5;
         }
 
+        /* SEARCH */
+
         .searchArea {
-            width: 100%;
-            padding: 30px 40px 0 40px;
-            margin-top: 64px;
+            width: 90%;
+            max-width: 1100px;
+            margin: 110px auto 80px auto;
         }
 
         .searchBox {
             width: 100%;
-            max-width: 600px;
             height: 46px;
             border: 1px solid #ccc;
-            border-radius: 7px;
+            border-radius: 6px;
             padding: 0 15px;
             font-size: 16px;
             outline: none;
@@ -197,25 +244,24 @@
 
         .searchResults {
             width: 100%;
-            max-width: 600px;
-            margin-top: 12px;
+            margin-top: 20px;
         }
 
         .searchResult {
             width: 100%;
-            min-height: 72px;
+            min-height: 92px;
             border: 1px solid #ddd;
-            border-radius: 7px;
-            background: #f7f7f7;
+            border-radius: 6px;
+            background: #f5f5f5;
             display: flex;
             align-items: center;
-            padding: 10px 12px;
-            margin-bottom: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
         }
 
         .searchResultPic {
-            width: 50px;
-            height: 50px;
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
             object-fit: cover;
             background: #ddd;
@@ -225,11 +271,11 @@
         .searchResultInfo {
             flex: 1;
             min-width: 0;
-            margin-left: 12px;
+            margin-left: 16px;
         }
 
         .searchResultName {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
             color: #111;
             overflow: hidden;
@@ -238,9 +284,9 @@
         }
 
         .searchResultUsername {
-            font-size: 13px;
+            font-size: 14px;
             color: #777;
-            margin-top: 3px;
+            margin-top: 5px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -250,9 +296,9 @@
             border: none;
             background: #111;
             color: white;
-            border-radius: 5px;
-            padding: 9px 13px;
-            font-size: 13px;
+            border-radius: 6px;
+            padding: 11px 16px;
+            font-size: 14px;
             font-weight: 700;
             cursor: pointer;
             flex-shrink: 0;
@@ -263,81 +309,104 @@
         }
 
         .noResults {
-            color: #777;
-            font-size: 14px;
-            padding: 8px 2px;
+            color: #999;
+            font-size: 15px;
+            padding: 10px 0;
+        }
+
+        @media (max-width: 700px) {
+
+            .searchArea {
+                margin-top: 90px;
+            }
+
+            .searchResult {
+                min-height: 80px;
+            }
+
+            .searchResultPic {
+                width: 50px;
+                height: 50px;
+            }
+
+            .viewProfileButton {
+                padding: 9px 11px;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <header class="topbar">
+    <!-- TOP BAR -->
 
-        <button
-            class="menuButton"
+    <div class="topbar">
+
+        <div
+            class="menu"
             onclick="toggleMenu()"
         >
-            ☰
-        </button>
-
-        <div class="logo">
-            FoxxyDen
+            <span></span>
+            <span></span>
+            <span></span>
         </div>
 
         <div
-            class="account"
-            id="account"
+            class="logo"
+            onclick="location.href='index.html'"
         >
+            FoxxyDen
+        </div>
+
+        <div id="account">
 
             <button
                 id="loginButton"
-                class="loginButton"
                 onclick="loginWithDiscord()"
             >
-                Login with Discord
+                LOGIN WITH DISCORD
             </button>
 
             <div
                 id="profile"
-                class="profile"
                 onclick="toggleProfileMenu()"
             >
 
                 <img
                     id="profilePic"
-                    class="profilePic"
                     src=""
                     alt="Profile picture"
                 >
 
-                <span
-                    id="profileName"
-                    class="profileName"
-                >
-                    Player
-                </span>
+                <div id="profileNameContainer">
 
-                <span
-                    id="verificationBadge"
-                    class="verified"
-                    style="display: none;"
-                >
-                    <span>✓</span>
-                </span>
+                    <span id="profileName"></span>
+
+                    <span
+                        id="verificationBadge"
+                        class="verified"
+                        style="display: none;"
+                    >
+                        <span>✓</span>
+                    </span>
+
+                </div>
 
             </div>
 
-            <div
-                id="profileMenu"
-                class="profileMenu"
-            >
+            <div id="profileMenu">
 
-                <button onclick="viewProfile(event)">
+                <button
+                    class="profileOption"
+                    onclick="viewProfile(event)"
+                >
                     View Profile
                 </button>
 
-                <button onclick="signOut(event)">
+                <button
+                    class="profileOption"
+                    onclick="signOut(event)"
+                >
                     Sign Out
                 </button>
 
@@ -345,12 +414,16 @@
 
         </div>
 
-    </header>
+    </div>
 
-    <aside
-        id="sidebar"
+
+    <!-- SIDEBAR -->
+
+    <div
         class="sidebar"
+        id="sidebar"
     >
+
         <a href="shop.html">
             Shop
         </a>
@@ -362,7 +435,11 @@
         <a href="settings.html">
             Settings
         </a>
-    </aside>
+
+    </div>
+
+
+    <!-- SEARCH -->
 
     <main>
 
@@ -385,7 +462,9 @@
 
     </main>
 
+
     <script>
+
         const SUPABASE_URL =
             "https://dpcixdjggpulxlekrqqk.supabase.co";
 
@@ -401,25 +480,31 @@
             SUPABASE_KEY
         );
 
+
         let currentUser = null;
         let searchTimeout = null;
 
+
         function toggleMenu() {
+
             document
                 .getElementById("sidebar")
-                .classList
-                .toggle("open");
+                .classList.toggle("open");
         }
+
 
         async function loginWithDiscord() {
 
             const { error } =
                 await db.auth.signInWithOAuth({
+
                     provider: "discord",
+
                     options: {
                         redirectTo:
                             "https://amberfoxterry.github.io/FoxxyDen/index.html"
                     }
+
                 });
 
             if (error) {
@@ -427,12 +512,14 @@
             }
         }
 
+
         function toggleProfileMenu() {
+
             document
                 .getElementById("profileMenu")
-                .classList
-                .toggle("open");
+                .classList.toggle("open");
         }
+
 
         function viewProfile(event) {
 
@@ -442,6 +529,7 @@
                 "profile.html";
         }
 
+
         async function signOut(event) {
 
             event.stopPropagation();
@@ -450,6 +538,7 @@
                 await db.auth.signOut();
 
             if (error) {
+
                 alert(error.message);
                 return;
             }
@@ -457,6 +546,7 @@
             window.location.href =
                 "index.html";
         }
+
 
         async function loadAccount() {
 
@@ -474,6 +564,7 @@
             const metadata =
                 currentUser.user_metadata || {};
 
+
             const displayName =
                 metadata.global_name ||
                 metadata.custom_claims?.global_name ||
@@ -481,38 +572,46 @@
                 metadata.name ||
                 "Player";
 
+
             const avatar =
                 metadata.avatar_url ||
                 metadata.picture ||
                 "";
+
 
             document
                 .getElementById("loginButton")
                 .style.display =
                     "none";
 
+
             document
                 .getElementById("profile")
                 .style.display =
                     "flex";
+
 
             document
                 .getElementById("profileName")
                 .textContent =
                     displayName;
 
+
             if (avatar) {
+
                 document
                     .getElementById("profilePic")
                     .src =
                         avatar;
             }
 
+
             if (
                 VERIFIED_UIDS.includes(
                     currentUser.id
                 )
             ) {
+
                 document
                     .getElementById(
                         "verificationBadge"
@@ -520,7 +619,9 @@
                     .style.display =
                         "inline-flex";
             }
+
         }
+
 
         document
             .getElementById("searchInput")
@@ -535,6 +636,7 @@
                     const search =
                         this.value.trim();
 
+
                     if (!search) {
 
                         document
@@ -547,13 +649,16 @@
                         return;
                     }
 
+
                     searchTimeout =
                         setTimeout(
                             () => searchUsers(search),
                             250
                         );
+
                 }
             );
+
 
         async function searchUsers(search) {
 
@@ -562,8 +667,10 @@
                     "searchResults"
                 );
 
+
             results.innerHTML =
                 '<div class="noResults">Searching...</div>';
+
 
             const {
                 data,
@@ -579,6 +686,7 @@
                 )
                 .limit(10);
 
+
             if (error) {
 
                 console.error(
@@ -592,6 +700,7 @@
                 return;
             }
 
+
             if (
                 !data ||
                 data.length === 0
@@ -603,7 +712,9 @@
                 return;
             }
 
+
             results.innerHTML = "";
+
 
             data.forEach(
                 function(user) {
@@ -615,6 +726,7 @@
 
                     result.className =
                         "searchResult";
+
 
                     const image =
                         document.createElement(
@@ -630,6 +742,7 @@
                     image.alt =
                         "Profile picture";
 
+
                     const info =
                         document.createElement(
                             "div"
@@ -637,6 +750,7 @@
 
                     info.className =
                         "searchResultInfo";
+
 
                     const name =
                         document.createElement(
@@ -651,6 +765,7 @@
                         user.username ||
                         "Player";
 
+
                     const username =
                         document.createElement(
                             "div"
@@ -663,6 +778,7 @@
                         "@" +
                         user.username;
 
+
                     info.appendChild(
                         name
                     );
@@ -670,6 +786,7 @@
                     info.appendChild(
                         username
                     );
+
 
                     const button =
                         document.createElement(
@@ -682,6 +799,7 @@
                     button.textContent =
                         "View Profile";
 
+
                     button.onclick =
                         function() {
 
@@ -690,7 +808,9 @@
                                 encodeURIComponent(
                                     user.username
                                 );
+
                         };
+
 
                     result.appendChild(
                         image
@@ -704,12 +824,16 @@
                         button
                     );
 
+
                     results.appendChild(
                         result
                     );
+
                 }
             );
+
         }
+
 
         document.addEventListener(
             "click",
@@ -720,11 +844,13 @@
                         "account"
                     );
 
+
                 if (
                     !account.contains(
                         event.target
                     )
                 ) {
+
                     document
                         .getElementById(
                             "profileMenu"
@@ -732,14 +858,13 @@
                         .classList
                         .remove("open");
                 }
+
             }
         );
 
-        async function initialize() {
-            await loadAccount();
-        }
 
-        initialize();
+        loadAccount();
+
     </script>
 
 </body>
