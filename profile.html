@@ -16,17 +16,16 @@
         body {
             margin: 0;
             background: #111;
-            color: white;
+            color: #fff;
             font-family: Arial, sans-serif;
         }
 
-        /* =========================
-           TOP BAR
-        ========================= */
+        /* TOP BAR */
 
         .topbar {
             height: 60px;
-            background: #ff69b4;
+            background: #fff;
+            color: #111;
             display: flex;
             align-items: center;
             padding: 0 20px;
@@ -37,7 +36,7 @@
             z-index: 100;
         }
 
-        .menu-button {
+        .menu {
             font-size: 25px;
             cursor: pointer;
             margin-right: 20px;
@@ -45,27 +44,27 @@
         }
 
         .logo {
-            font-size: 25px;
+            font-size: 24px;
             font-weight: bold;
         }
 
-        .top-profile {
+        .profile-button {
             margin-left: auto;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 9px;
             cursor: pointer;
             position: relative;
         }
 
-        .top-profile img {
+        .profile-button img {
             width: 38px;
             height: 38px;
             border-radius: 50%;
             object-fit: cover;
         }
 
-        .top-profile-name {
+        .profile-name {
             font-weight: bold;
         }
 
@@ -76,7 +75,7 @@
             justify-content: center;
             width: 26px;
             height: 26px;
-            margin-left: 5px;
+            margin-left: 3px;
             flex-shrink: 0;
         }
 
@@ -98,19 +97,18 @@
             transform: translateY(-1px);
         }
 
-        /* =========================
-           DROPDOWN
-        ========================= */
+        /* DROPDOWN */
 
         .dropdown {
             display: none;
             position: absolute;
-            top: 50px;
+            top: 48px;
             right: 0;
+            width: 170px;
             background: #222;
+            color: #fff;
             border: 1px solid #444;
-            min-width: 160px;
-            border-radius: 8px;
+            border-radius: 7px;
             overflow: hidden;
             z-index: 200;
         }
@@ -124,21 +122,19 @@
             background: #333;
         }
 
-        /* =========================
-           SIDEBAR
-        ========================= */
+        /* SIDEBAR */
 
         .sidebar {
             position: fixed;
             top: 60px;
             left: -230px;
-            width: 230px;
             bottom: 0;
+            width: 230px;
             background: #181818;
             border-right: 1px solid #333;
             transition: left 0.2s;
             z-index: 90;
-            padding-top: 15px;
+            padding-top: 10px;
         }
 
         .sidebar.open {
@@ -147,155 +143,162 @@
 
         .sidebar a {
             display: block;
+            padding: 15px 20px;
             color: white;
             text-decoration: none;
-            padding: 15px 20px;
-            font-size: 17px;
         }
 
         .sidebar a:hover {
             background: #292929;
         }
 
-        /* =========================
-           PAGE
-        ========================= */
+        /* PAGE */
 
         .page {
-            padding: 130px 40px 60px;
-            max-width: 1100px;
+            max-width: 1000px;
             margin: auto;
+            padding: 130px 35px 60px;
         }
 
-        .profile-top {
+        .profile-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             gap: 50px;
         }
 
-        /* =========================
-           USER
-        ========================= */
-
-        .user-info {
+        .user {
             display: flex;
             align-items: center;
-            gap: 18px;
-            min-height: 180px;
+            gap: 20px;
         }
 
-        .profile-pfp {
-            width: 130px;
-            height: 130px;
+        .user img {
+            width: 125px;
+            height: 125px;
             border-radius: 50%;
             object-fit: cover;
-            background: #222;
         }
 
         .display-name {
-            font-size: 32px;
-            font-weight: bold;
             display: flex;
             align-items: center;
+            font-size: 30px;
+            font-weight: bold;
         }
 
-        /* =========================
-           CHARACTER PREVIEW
-        ========================= */
+        /* CHARACTER PREVIEW
+           Same simple white/gray FoxxyDen preview style.
+        */
 
         .character-preview {
-            width: 300px;
-            height: 300px;
+            width: 260px;
+            height: 260px;
             background: #1b1b1b;
-            border: 1px solid #333;
-            border-radius: 12px;
-
+            border: 1px solid #444;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /*
-            Same default character currently
-            used by customazition.html.
-        */
-
         .character {
-            width: 150px;
-            height: 150px;
-            background: #888;
+            width: 125px;
+            height: 155px;
+            background: #bdbdbd;
             border-radius: 8px;
-            box-shadow:
-                0 0 0 4px #666,
-                0 12px 25px rgba(0, 0, 0, 0.45);
+            position: relative;
         }
 
-        /* =========================
-           DIVIDER
-        ========================= */
+        .character::before {
+            content: "";
+            position: absolute;
+            left: 12px;
+            right: 12px;
+            top: 12px;
+            height: 55px;
+            background: #f2f2f2;
+            border-radius: 6px;
+        }
+
+        .character::after {
+            content: "";
+            position: absolute;
+            left: 22px;
+            right: 22px;
+            bottom: 12px;
+            height: 58px;
+            background: #8f8f8f;
+            border-radius: 6px;
+        }
+
+        /* DIVIDER */
 
         .divider {
             height: 1px;
             background: #333;
-            margin: 45px 0;
+            margin: 40px 0;
         }
 
-        /* =========================
-           CURRENTLY WEARING
-        ========================= */
+        /* CURRENTLY WEARING */
 
         h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
+            margin: 0 0 20px;
+            font-size: 23px;
         }
 
         .items {
             display: flex;
             flex-wrap: wrap;
-            gap: 18px;
+            gap: 15px;
         }
 
         .item {
-            width: 180px;
+            width: 170px;
             background: #1c1c1c;
-            border: 1px solid #333;
-            border-radius: 10px;
-            padding: 15px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 12px;
         }
 
         .item-preview {
-            width: 100%;
-            height: 140px;
-            background: #888;
-            border-radius: 7px;
+            height: 130px;
+            background: #bdbdbd;
+            border-radius: 6px;
             margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .item-preview-inner {
+            width: 65px;
+            height: 80px;
+            background: #8f8f8f;
+            border-radius: 5px;
         }
 
         .item-name {
-            font-size: 17px;
             font-weight: bold;
         }
 
         .item-status {
             margin-top: 5px;
             color: #aaa;
-            font-size: 14px;
+            font-size: 13px;
         }
 
-        /* =========================
-           BIO
-        ========================= */
+        /* BIO */
 
         .bio {
             background: #1c1c1c;
-            border: 1px solid #333;
-            border-radius: 10px;
-            padding: 20px;
-            min-height: 100px;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            border: 1px solid #444;
+            border-radius: 8px;
+            padding: 18px;
+            min-height: 90px;
             color: #ddd;
+            white-space: pre-wrap;
+            word-break: break-word;
         }
 
         .empty {
@@ -303,21 +306,20 @@
         }
 
         @media (max-width: 700px) {
+
             .page {
-                padding: 110px 20px 40px;
+                padding-left: 20px;
+                padding-right: 20px;
             }
 
-            .profile-top {
+            .profile-header {
                 flex-direction: column;
+                align-items: flex-start;
             }
 
             .character-preview {
                 width: 100%;
-                max-width: 300px;
-            }
-
-            .user-info {
-                min-height: auto;
+                max-width: 260px;
             }
         }
     </style>
@@ -329,17 +331,19 @@
 
     <div class="topbar">
 
-        <div class="menu-button" onclick="toggleSidebar()">☰</div>
+        <div class="menu" onclick="toggleSidebar()">
+            ☰
+        </div>
 
         <div class="logo">
             FoxxyDen
         </div>
 
-        <div class="top-profile" onclick="toggleDropdown()">
+        <div class="profile-button" onclick="toggleDropdown()">
 
             <img id="topPfp" src="" alt="">
 
-            <span id="topName" class="top-profile-name">
+            <span id="topName" class="profile-name">
                 Player
             </span>
 
@@ -347,7 +351,7 @@
 
             <div id="dropdown" class="dropdown">
 
-                <div onclick="goProfile(event)">
+                <div onclick="openProfile(event)">
                     View Profile
                 </div>
 
@@ -385,37 +389,26 @@
 
     <main class="page">
 
-        <div class="profile-top">
+        <div class="profile-header">
 
-            <!-- USER INFO -->
+            <div class="user">
 
-            <div class="user-info">
+                <img id="profilePfp" src="" alt="">
 
-                <img
-                    id="profilePfp"
-                    class="profile-pfp"
-                    src=""
-                    alt="Profile picture"
-                >
+                <div class="display-name">
 
-                <div>
+                    <span id="displayName">
+                        Player
+                    </span>
 
-                    <div class="display-name">
-
-                        <span id="displayName">
-                            Player
-                        </span>
-
-                        <span id="profileVerified"></span>
-
-                    </div>
+                    <span id="profileVerified"></span>
 
                 </div>
 
             </div>
 
 
-            <!-- CHARACTER -->
+            <!-- SAME CHARACTER AREA -->
 
             <div class="character-preview">
 
@@ -439,7 +432,11 @@
 
             <div class="item">
 
-                <div class="item-preview"></div>
+                <div class="item-preview">
+
+                    <div class="item-preview-inner"></div>
+
+                </div>
 
                 <div class="item-name">
                     Default Gray
@@ -489,21 +486,12 @@
             );
 
 
-        /*
-            Your verified Supabase UID.
-
-            This is only used to decide whether
-            the heart badge should be displayed.
-        */
+        /* ONLY YOUR ACCOUNT IS VERIFIED */
 
         const VERIFIED_UIDS = [
             "ca2cdea0-9fbd-4380-a34b-e505540ade35"
         ];
 
-
-        /* =========================
-           VERIFIED BADGE
-        ========================= */
 
         function verifiedBadge(userId) {
 
@@ -519,9 +507,7 @@
         }
 
 
-        /* =========================
-           SIDEBAR
-        ========================= */
+        /* SIDEBAR */
 
         function toggleSidebar() {
 
@@ -532,9 +518,7 @@
         }
 
 
-        /* =========================
-           DROPDOWN
-        ========================= */
+        /* DROPDOWN */
 
         function toggleDropdown() {
 
@@ -549,7 +533,7 @@
         }
 
 
-        function goProfile(event) {
+        function openProfile(event) {
 
             event.stopPropagation();
 
@@ -559,9 +543,7 @@
         }
 
 
-        /* =========================
-           SIGN OUT
-        ========================= */
+        /* SIGN OUT */
 
         async function signOut(event) {
 
@@ -575,9 +557,7 @@
         }
 
 
-        /* =========================
-           LOAD PROFILE
-        ========================= */
+        /* LOAD PROFILE */
 
         async function loadProfile() {
 
@@ -594,6 +574,7 @@
                     "index.html";
 
                 return;
+
             }
 
 
@@ -601,20 +582,24 @@
                 session.user;
 
 
-            /*
-                Discord display name.
-                Username is NOT displayed publicly.
-            */
-
             const metadata =
                 user.user_metadata || {};
 
 
+            /*
+                Discord display name.
+
+                global_name = Discord Display Name
+                user_name    = Discord username
+
+                We intentionally DO NOT use user_name.
+            */
+
             const displayName =
+                metadata.custom_claims?.global_name ||
+                metadata.global_name ||
                 metadata.full_name ||
                 metadata.name ||
-                metadata.custom_claims?.global_name ||
-                metadata.user_name ||
                 "Player";
 
 
@@ -624,7 +609,7 @@
                 "";
 
 
-            /* TOP PROFILE */
+            /* TOP BAR */
 
             document
                 .getElementById("topName")
@@ -649,7 +634,7 @@
             }
 
 
-            /* VERIFICATION */
+            /* VERIFIED */
 
             const badge =
                 verifiedBadge(user.id);
@@ -665,7 +650,7 @@
                 .innerHTML = badge;
 
 
-            /* PROFILE DATABASE */
+            /* DATABASE PROFILE */
 
             const {
                 data,
@@ -680,11 +665,12 @@
             if (error) {
 
                 console.error(
-                    "Failed to load profile:",
+                    "Profile loading error:",
                     error
                 );
 
                 return;
+
             }
 
 
@@ -694,58 +680,50 @@
                 data.bio || "";
 
 
-            const bioElement =
-                document.getElementById("bio");
-
-
             if (bio.trim() === "") {
 
-                bioElement.innerHTML =
+                document
+                    .getElementById("bio")
+                    .innerHTML =
                     `<span class="empty">No bio yet.</span>`;
 
             } else {
 
-                bioElement.textContent =
+                document
+                    .getElementById("bio")
+                    .textContent =
                     bio;
 
             }
 
 
             /*
-                Currently wearing.
+                CURRENTLY WEARING
 
-                For now the default gray item is
-                equipped, matching customization.
-                
-                No Equip button is shown here.
+                Same visual item box idea as
+                customization, but NO Equip button.
             */
 
-            loadWearing(data.owned);
+            loadCurrentlyWearing(data.owned);
 
         }
 
 
-        /* =========================
-           CURRENTLY WEARING
-        ========================= */
-
-        function loadWearing(owned) {
+        function loadCurrentlyWearing(owned) {
 
             const container =
                 document.getElementById("items");
 
 
-            /*
-                Currently there is only the default
-                gray item, so the profile displays it
-                exactly as an equipped customization item.
-            */
-
             container.innerHTML = `
 
                 <div class="item">
 
-                    <div class="item-preview"></div>
+                    <div class="item-preview">
+
+                        <div class="item-preview-inner"></div>
+
+                    </div>
 
                     <div class="item-name">
                         Default Gray
@@ -761,10 +739,6 @@
 
         }
 
-
-        /* =========================
-           START
-        ========================= */
 
         loadProfile();
 
