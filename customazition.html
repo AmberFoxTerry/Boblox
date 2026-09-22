@@ -298,10 +298,11 @@
         const SUPABASE_KEY =
             "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
 
-        const db = supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_KEY
-        );
+        const db =
+            supabase.createClient(
+                SUPABASE_URL,
+                SUPABASE_KEY
+            );
 
 
         const colorItems = [
@@ -327,7 +328,10 @@
 
 
         let session = null;
+
         let owned = [];
+
+        let equipped = "gray";
 
 
         function toggleMenu() {
@@ -350,22 +354,10 @@
         }
 
 
-        function getEquipped() {
-
-            return localStorage.getItem(
-                "foxxyden_equipped"
-            ) || "gray";
-
-        }
-
-
         function updatePreview() {
 
             const player =
                 document.getElementById("player");
-
-            const equipped =
-                getEquipped();
 
 
             if (equipped === "gray") {
@@ -376,42 +368,72 @@
                 player.style.borderColor =
                     "#aaa";
 
-            } else {
-
-                const item =
-                    colorItems.find(
-                        function(color) {
-                            return color.id === equipped;
-                        }
-                    );
-
-
-                if (item) {
-
-                    player.style.background =
-                        item.color;
-
-                    player.style.borderColor =
-                        item.color;
-
-                }
-
+                return;
             }
+
+
+            const item =
+                colorItems.find(
+                    function(color) {
+                        return color.id === equipped;
+                    }
+                );
+
+
+            if (!item) {
+
+                player.style.background =
+                    "#d3d3d3";
+
+                player.style.borderColor =
+                    "#aaa";
+
+                return;
+            }
+
+
+            player.style.background =
+                item.color;
+
+            player.style.borderColor =
+                item.color;
 
         }
 
 
-        function equipColor(colorId) {
+        async function equipColor(colorId) {
+
+            if (!session) {
+                return;
+            }
 
             if (!owned.includes(colorId)) {
                 return;
             }
 
 
-            localStorage.setItem(
-                "foxxyden_equipped",
-                colorId
-            );
+            const { error } =
+                await db
+                    .from("profiles")
+                    .update({
+                        equipped: colorId
+                    })
+                    .eq("uuid", session.user.id);
+
+
+            if (error) {
+
+                console.error(
+                    "Could not equip item:",
+                    error
+                );
+
+                return;
+            }
+
+
+            equipped =
+                colorId;
 
 
             renderCustomization();
@@ -420,12 +442,35 @@
         }
 
 
-        function equipGray() {
+        async function equipGray() {
 
-            localStorage.setItem(
-                "foxxyden_equipped",
-                "gray"
-            );
+            if (!session) {
+                return;
+            }
+
+
+            const { error } =
+                await db
+                    .from("profiles")
+                    .update({
+                        equipped: "gray"
+                    })
+                    .eq("uuid", session.user.id);
+
+
+            if (error) {
+
+                console.error(
+                    "Could not equip Default Gray:",
+                    error
+                );
+
+                return;
+            }
+
+
+            equipped =
+                "gray";
 
 
             renderCustomization();
@@ -440,10 +485,6 @@
                 document.getElementById("colors");
 
             container.innerHTML = "";
-
-
-            const equipped =
-                getEquipped();
 
 
             const defaultColor =
@@ -473,6 +514,7 @@
 
                 <button
                     class="${equipped === "gray" ? "equipped" : "equip"}"
+                    ${equipped === "gray" ? "disabled" : ""}
                     onclick="equipGray()"
                 >
                     ${equipped === "gray" ? "Equipped" : "Equip"}
@@ -481,60 +523,72 @@
             `;
 
 
-            container.appendChild(defaultColor);
+            container.appendChild(
+                defaultColor
+            );
 
 
-            colorItems.forEach(function(item) {
+            colorItems.forEach(
+                function(item) {
 
-                if (!owned.includes(item.id)) {
-                    return;
-                }
-
-
-                const element =
-                    document.createElement("div");
-
-                element.className =
-                    "color";
+                    if (
+                        !owned.includes(
+                            item.id
+                        )
+                    ) {
+                        return;
+                    }
 
 
-                const isEquipped =
-                    equipped === item.id;
+                    const element =
+                        document.createElement(
+                            "div"
+                        );
+
+                    element.className =
+                        "color";
 
 
-                element.innerHTML = `
+                    const isEquipped =
+                        equipped === item.id;
 
-                    <div class="color-info">
 
-                        <div class="dot ${item.className}"></div>
+                    element.innerHTML = `
 
-                        <div>
+                        <div class="color-info">
 
-                            ${item.name}
+                            <div class="dot ${item.className}"></div>
 
-                            <div class="creator">
-                                Creator: Terry
-                                ${verificationBadge()}
+                            <div>
+
+                                ${item.name}
+
+                                <div class="creator">
+                                    Creator: Terry
+                                    ${verificationBadge()}
+                                </div>
+
                             </div>
 
                         </div>
 
-                    </div>
+                        <button
+                            class="${isEquipped ? "equipped" : "equip"}"
+                            ${isEquipped ? "disabled" : ""}
+                            onclick="equipColor('${item.id}')"
+                        >
+                            ${isEquipped ? "Equipped" : "Equip"}
+                        </button>
 
-                    <button
-                        class="${isEquipped ? "equipped" : "equip"}"
-                        ${isEquipped ? "disabled" : ""}
-                        onclick="equipColor('${item.id}')"
-                    >
-                        ${isEquipped ? "Equipped" : "Equip"}
-                    </button>
-
-                `;
+                    `;
 
 
-                container.appendChild(element);
+                    container.appendChild(
+                        element
+                    );
 
-            });
+                }
+            );
 
         }
 
@@ -542,48 +596,66 @@
         async function loadCustomization() {
 
             const {
-                data: { session: currentSession }
-            } = await db.auth.getSession();
+                data: {
+                    session: currentSession
+                }
+            } =
+                await db.auth.getSession();
 
 
-            session = currentSession;
+            session =
+                currentSession;
 
 
             if (!session) {
 
                 owned = [];
+
+                equipped = "gray";
+
                 renderCustomization();
                 updatePreview();
-                return;
 
+                return;
             }
 
 
             const { data, error } =
                 await db
                     .from("profiles")
-                    .select("owned")
-                    .eq("uuid", session.user.id)
+                    .select(
+                        "owned, equipped"
+                    )
+                    .eq(
+                        "uuid",
+                        session.user.id
+                    )
                     .single();
 
 
             if (error) {
 
                 console.error(
-                    "Could not load owned items:",
+                    "Could not load profile:",
                     error
                 );
 
                 renderCustomization();
                 updatePreview();
-                return;
 
+                return;
             }
 
 
-            owned = Array.isArray(data.owned)
-                ? data.owned
-                : [];
+            owned =
+                Array.isArray(data.owned)
+                    ? data.owned
+                    : [];
+
+
+            equipped =
+                data.equipped ||
+                "gray";
 
 
             renderCustomization();
