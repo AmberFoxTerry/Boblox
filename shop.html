@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOBLOX - SHOP</title>
+    <title>FoxxyDen - SHOP</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         * {
@@ -25,6 +27,7 @@
             align-items: center;
             padding-left: 18px;
             border-bottom: 1px solid #dedede;
+            position: relative;
         }
 
         .menu {
@@ -52,6 +55,14 @@
             cursor: pointer;
         }
 
+        .balance {
+            position: absolute;
+            right: 20px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+        }
+
         .sidebar {
             position: fixed;
             top: 64px;
@@ -62,6 +73,7 @@
             border-right: 1px solid #ddd;
             transition: left 0.2s ease;
             padding: 20px 0;
+            z-index: 10;
         }
 
         .sidebar.open {
@@ -87,87 +99,6 @@
 
         h1 {
             font-size: 32px;
-            margin-bottom: 30px;
-        }
-
-        .items {
-            display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .item {
-            width: 220px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 20px;
-            background: #fafafa;
-        }
-
-        .color-preview {
-            width: 100%;
-            height: 120px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-        }
-
-        .red {
-            background: red;
-        }
-
-        .green {
-            background: limegreen;
-        }
-
-        .blue {
-            background: blue;
-        }
-
-        .item-name {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .creator {
-            color: #555;
-            margin-bottom: 18px;
-        }
-
-        .verified {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 18px;
-            height: 18px;
-            margin-left: 4px;
-            background: #ff69b4;
-            color: white;
-            border-radius: 50%;
-            font-size: 12px;
-            font-weight: bold;
-        }
-
-        .buy {
-            width: 100%;
-            border: none;
-            background: #39b54a;
-            color: white;
-            padding: 12px;
-            border-radius: 5px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .buy:hover {
-            background: #2f9b3e;
-        }
-
-        .buy.purchased {
-            background: #d3d3d3;
-            color: #555;
-            cursor: default;
         }
     </style>
 </head>
@@ -175,115 +106,135 @@
 <body>
 
     <div class="topbar">
-        <div class="menu" onclick="toggleMenu()">
+
+        <div
+            class="menu"
+            onclick="toggleMenu()"
+        >
             <span></span>
             <span></span>
             <span></span>
         </div>
 
-        <div class="logo" onclick="location.href='index.html'">
-            BOBLOX
+        <div
+            class="logo"
+            onclick="location.href='index.html'"
+        >
+            FoxxyDen
         </div>
+
+        <div
+            class="balance"
+            id="balance"
+        >
+            0 FoxCoins
+        </div>
+
     </div>
 
-    <div class="sidebar" id="sidebar">
-        <a href="shop.html">Shop</a>
-        <a href="customazition.html">Customization</a>
-        <a href="settings.html">Settings</a>
+
+    <div
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <a href="shop.html">
+            Shop
+        </a>
+
+        <a href="customazition.html">
+            Customization
+        </a>
+
+        <a href="settings.html">
+            Settings
+        </a>
+
     </div>
+
 
     <div class="content">
-        <h1>Shop</h1>
 
-        <div class="items">
+        <h1>
+            Shop
+        </h1>
 
-            <div class="item">
-                <div class="color-preview red"></div>
-
-                <div class="item-name">Red</div>
-
-                <div class="creator">
-                    Creator: Terry
-                    <span class="verified">✓</span>
-                </div>
-
-                <button class="buy" id="redButton" onclick="buyColor('red')">
-                    Free
-                </button>
-            </div>
-
-            <div class="item">
-                <div class="color-preview green"></div>
-
-                <div class="item-name">Green</div>
-
-                <div class="creator">
-                    Creator: Terry
-                    <span class="verified">✓</span>
-                </div>
-
-                <button class="buy" id="greenButton" onclick="buyColor('green')">
-                    Free
-                </button>
-            </div>
-
-            <div class="item">
-                <div class="color-preview blue"></div>
-
-                <div class="item-name">Blue</div>
-
-                <div class="creator">
-                    Creator: Terry
-                    <span class="verified">✓</span>
-                </div>
-
-                <button class="buy" id="blueButton" onclick="buyColor('blue')">
-                    Free
-                </button>
-            </div>
-
-        </div>
     </div>
 
+
     <script>
+
+        const SUPABASE_URL =
+            "https://dpcixdjggpulxlekrqqk.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
+
+        const db = supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+
         function toggleMenu() {
-            document.getElementById("sidebar").classList.toggle("open");
+
+            document
+                .getElementById("sidebar")
+                .classList.toggle("open");
+
         }
 
-        function buyColor(color) {
-            let owned = JSON.parse(
-                localStorage.getItem("boblox_owned") || "[]"
-            );
 
-            if (!owned.includes(color)) {
-                owned.push(color);
+        async function loadBalance() {
 
-                localStorage.setItem(
-                    "boblox_owned",
-                    JSON.stringify(owned)
-                );
+            const {
+                data: { session }
+            } = await db.auth.getSession();
+
+
+            if (!session) {
+
+                document
+                    .getElementById("balance")
+                    .textContent = "0 FoxCoins";
+
+                return;
             }
 
-            updateShop();
+
+            const { data, error } =
+                await db
+                    .from("profiles")
+                    .select("currency")
+                    .eq("uuid", session.user.id)
+                    .single();
+
+
+            if (error) {
+
+                console.error(
+                    "Could not load currency:",
+                    error
+                );
+
+                return;
+            }
+
+
+            const currency =
+                Number(data.currency) || 0;
+
+
+            document
+                .getElementById("balance")
+                .textContent =
+                    currency.toLocaleString() +
+                    " FoxCoins";
         }
 
-        function updateShop() {
-            const owned = JSON.parse(
-                localStorage.getItem("boblox_owned") || "[]"
-            );
 
-            ["red", "green", "blue"].forEach(color => {
-                const button = document.getElementById(color + "Button");
+        loadBalance();
 
-                if (owned.includes(color)) {
-                    button.textContent = "Purchased";
-                    button.classList.add("purchased");
-                    button.onclick = null;
-                }
-            });
-        }
-
-        updateShop();
     </script>
 
 </body>
