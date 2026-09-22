@@ -803,22 +803,46 @@
                     .presenceState();
 
 
-            let count = 0;
+            /*
+             * Every player announces their
+             * own unique ID.
+             *
+             * Use a Set so duplicate presence
+             * entries cannot increase the count.
+             */
+
+            const playerIds =
+                new Set();
 
 
-            Object.keys(
+            Object.values(
                 state
             ).forEach(
-                function(key) {
+                function(players) {
 
-                    count +=
-                        state[key].length;
+                    players.forEach(
+                        function(player) {
+
+                            if (
+                                player &&
+                                player.id
+                            ) {
+
+                                playerIds.add(
+                                    player.id
+                                );
+
+                            }
+
+                        }
+                    );
+
                 }
             );
 
 
             games[0].online =
-                count;
+                playerIds.size;
 
 
             renderGames(
@@ -1058,7 +1082,8 @@
                 .limit(10);
 
 
-            results.innerHTML = "";
+            results.innerHTML =
+                "";
 
 
             /*
@@ -1250,7 +1275,8 @@
                 );
 
 
-            results.innerHTML = "";
+            results.innerHTML =
+                "";
 
 
             renderGames("");
