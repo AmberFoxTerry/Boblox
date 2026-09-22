@@ -3,364 +3,279 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Foxxy Hangout</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-
 * {
     box-sizing: border-box;
 }
 
-html,
-body {
+html, body {
     margin: 0;
     width: 100%;
     height: 100%;
     overflow: hidden;
     font-family: Arial, sans-serif;
+    background: #87ceeb;
 }
 
-body {
-    background: #181818;
-    display: flex;
-}
-
-
-/* =========================
-   GAME
-========================= */
-
-#gameArea {
-    flex: 1;
-    height: 100%;
+#game {
     position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: linear-gradient(#87ceeb 0%, #bde9ff 100%);
+}
+
+#world {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 320px;
+    bottom: 0;
     overflow: hidden;
 }
 
-canvas {
-    display: block;
-    width: 100%;
-    height: 100%;
+#floor {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 80px;
+    background: #65a84f;
+    border-top: 5px solid #4b873a;
 }
 
+.wall {
+    position: absolute;
+    bottom: 80px;
+    width: 25px;
+    height: 100%;
+    background: #777;
+}
 
-/* =========================
-   CHAT
-========================= */
+#leftWall {
+    left: 0;
+}
+
+#rightWall {
+    right: 0;
+}
+
+.player {
+    position: absolute;
+    width: 42px;
+    height: 42px;
+    background: #888;
+    border: 2px solid #555;
+    border-radius: 4px;
+    transform: translateX(-50%);
+}
+
+.playerName {
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    text-shadow:
+        1px 1px 2px black,
+        -1px -1px 2px black,
+        1px -1px 2px black,
+        -1px 1px 2px black;
+    pointer-events: none;
+}
 
 #chat {
-    width: 300px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 320px;
     height: 100%;
-    background: #eeeeee;
-    border-left: 1px solid #cccccc;
-
+    background: #f3f3f3;
+    border-left: 1px solid #ccc;
     display: flex;
     flex-direction: column;
 }
 
 #chatHeader {
-    height: 55px;
-
+    height: 60px;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-
-    padding: 0 10px 0 16px;
-
-    font-size: 20px;
-    font-weight: 800;
-
-    color: #111;
-
-    border-bottom: 1px solid #d0d0d0;
-
-    background: #f5f5f5;
+    padding: 0 16px;
+    font-size: 18px;
+    font-weight: bold;
+    border-bottom: 1px solid #ddd;
+    background: white;
 }
 
-#leaveButton {
-    border: none;
-    background: #e53935;
-    color: white;
-
-    font-size: 13px;
-    font-weight: 800;
-
-    padding: 8px 12px;
-
-    border-radius: 6px;
-
-    cursor: pointer;
-}
-
-#leaveButton:hover {
-    background: #c62828;
-}
-
-#chatMessages {
+#messages {
     flex: 1;
-
     overflow-y: auto;
-
     padding: 12px;
 }
 
-.chatMessage {
+.message {
     margin-bottom: 10px;
     word-wrap: break-word;
 }
 
-.chatName {
-    font-weight: 800;
-    color: #111;
+.messageName {
+    font-weight: bold;
     margin-right: 5px;
-}
-
-.chatText {
-    color: #333;
 }
 
 #chatInputContainer {
     padding: 10px;
-
-    border-top: 1px solid #d0d0d0;
-
-    background: #f5f5f5;
+    border-top: 1px solid #ddd;
+    background: white;
 }
 
 #chatInput {
     width: 100%;
-    height: 40px;
-
+    height: 42px;
     padding: 0 12px;
-
-    border: 1px solid #c8c8c8;
+    border: 1px solid #ccc;
     border-radius: 6px;
-
     outline: none;
-
-    font-size: 15px;
-
-    background: white;
+    font-size: 14px;
 }
 
 #chatInput:focus {
     border-color: #888;
 }
 
+#leaveButton {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 50;
+    padding: 9px 14px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#leaveButton:hover {
+    background: #eee;
+}
+
+#roomStatus {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40;
+    padding: 7px 12px;
+    background: rgba(255,255,255,0.9);
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: bold;
+}
 </style>
 </head>
 
 <body>
 
-<div id="gameArea">
-    <canvas id="game"></canvas>
-</div>
+<div id="game">
 
-<div id="chat">
+    <div id="world">
+        <button id="leaveButton">Leave</button>
 
-    <div id="chatHeader">
+        <div id="roomStatus">Joining room...</div>
 
-        <span id="chatTitle">Chat</span>
+        <div id="floor"></div>
 
-        <button
-            id="leaveButton"
-            type="button"
-        >
-            Leave
-        </button>
+        <div id="leftWall" class="wall"></div>
+        <div id="rightWall" class="wall"></div>
 
+        <div id="localPlayer" class="player">
+            <div id="localPlayerName" class="playerName">Player</div>
+        </div>
     </div>
 
-    <div id="chatMessages"></div>
+    <div id="chat">
+        <div id="chatHeader">
+            Chat
+        </div>
 
-    <div id="chatInputContainer">
+        <div id="messages"></div>
 
-        <input
-            id="chatInput"
-            type="text"
-            placeholder="Type a message..."
-            maxlength="200"
-            autocomplete="off"
-        >
-
+        <div id="chatInputContainer">
+            <input
+                id="chatInput"
+                type="text"
+                placeholder="Type a message..."
+                maxlength="300"
+                autocomplete="off"
+            >
+        </div>
     </div>
 
 </div>
-
 
 <script>
-
-/* =========================
-   SUPABASE
-========================= */
-
-const SUPABASE_URL =
-    "https://dpcixdjggpulxlekrqqk.supabase.co";
+const SUPABASE_URL = "https://dpcixdjggpulxlekrqqk.supabase.co";
 
 const SUPABASE_KEY =
-    "sb_publishable_-312NjvVe6aLDGKsmuZgQ_JfozDccs";
+    "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
 
-const db =
-    window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY
-    );
+const db = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
+const MAX_PLAYERS = 4;
 
-/* =========================
-   DOM
-========================= */
+const localPlayer = document.getElementById("localPlayer");
+const localPlayerName = document.getElementById("localPlayerName");
+const messages = document.getElementById("messages");
+const chatInput = document.getElementById("chatInput");
+const chatHeader = document.getElementById("chatHeader");
+const roomStatus = document.getElementById("roomStatus");
 
-const canvas =
-    document.getElementById("game");
+let playerId = crypto.randomUUID();
+let playerName = "Player";
 
-const ctx =
-    canvas.getContext("2d");
+let roomNumber = null;
+let roomChannel = null;
+let lobbyChannel = null;
 
-const gameArea =
-    document.getElementById("gameArea");
+let x = 300;
+let y = 0;
 
-const chatInput =
-    document.getElementById("chatInput");
-
-const chatMessages =
-    document.getElementById("chatMessages");
-
-const chatTitle =
-    document.getElementById("chatTitle");
-
-const leaveButton =
-    document.getElementById("leaveButton");
-
-
-/* =========================
-   PLAYER
-========================= */
-
-const playerId =
-    crypto.randomUUID();
-
-let playerName =
-    "Player";
-
-
-/* =========================
-   ROOM
-========================= */
-
-const room = {
-    width: 1100,
-    height: 600
-};
-
-const MAX_PLAYERS =
-    4;
-
-let roomNumber =
-    null;
-
-let roomName =
-    null;
-
-
-/* =========================
-   LOCAL PLAYER
-========================= */
-
-const player = {
-
-    x: 525,
-    y: 400,
-
-    width: 50,
-    height: 50,
-
-    velocityX: 0,
-    velocityY: 0,
-
-    speed: 5,
-    jumpPower: 13,
-
-    gravity: 0.6,
-
-    grounded: false,
-
-    color: "#999999"
-};
-
-
-/* =========================
-   OTHER PLAYERS
-========================= */
-
-const otherPlayers = {};
-
-
-/* =========================
-   INPUT
-========================= */
+let velocityY = 0;
+let onGround = true;
 
 const keys = {
-    a: false,
-    d: false,
-    space: false
+    left: false,
+    right: false
 };
 
-
-/* =========================
-   ROOM POSITION
-========================= */
-
-let roomX = 0;
-let roomY = 0;
+let lastBroadcast = 0;
 
 
 /* =========================
-   NETWORK
-========================= */
-
-let multiplayerChannel =
-    null;
-
-let leaving =
-    false;
-
-let joiningRoom =
-    false;
-
-
-/* =========================
-   LOAD PLAYER
+   ACCOUNT
 ========================= */
 
 async function loadPlayer() {
+    const {
+        data: { session }
+    } = await db.auth.getSession();
 
-    try {
-
-        const {
-            data: {
-                session
-            }
-        } = await db.auth.getSession();
-
-
-        if (!session) {
-
-            playerName =
-                "Player";
-
-            joinAvailableRoom();
-
-            return;
-        }
-
-
-        const metadata =
-            session.user.user_metadata || {};
-
+    if (!session) {
+        playerName = "Player";
+    } else {
+        const metadata = session.user.user_metadata || {};
 
         playerName =
             metadata.global_name ||
@@ -368,336 +283,117 @@ async function loadPlayer() {
             metadata.full_name ||
             metadata.name ||
             "Player";
-
-
-        if (
-            !playerName ||
-            playerName.trim() === ""
-        ) {
-            playerName = "Player";
-        }
-
-
-        joinAvailableRoom();
-
-    } catch (error) {
-
-        console.error(
-            "Could not load player:",
-            error
-        );
-
-        playerName =
-            "Player";
-
-        joinAvailableRoom();
     }
-}
 
-loadPlayer();
+    localPlayerName.textContent = playerName;
+}
 
 
 /* =========================
-   CANVAS
+   LOBBY PRESENCE
 ========================= */
 
-function resize() {
+async function joinLobby() {
 
-    canvas.width =
-        gameArea.clientWidth;
+    lobbyChannel = db.channel(
+        "foxxy-hangout-lobby",
+        {
+            config: {
+                presence: {
+                    key: playerId
+                }
+            }
+        }
+    );
 
-    canvas.height =
-        gameArea.clientHeight;
+    lobbyChannel.subscribe(async status => {
 
-    positionRoom();
+        if (status === "SUBSCRIBED") {
+
+            await lobbyChannel.track({
+                id: playerId,
+                name: playerName,
+                game: "foxxy-hangout"
+            });
+
+        }
+
+    });
 }
-
-function positionRoom() {
-
-    roomX =
-        (canvas.width - room.width) / 2;
-
-    roomY =
-        (canvas.height - room.height) / 2;
-}
-
-window.addEventListener(
-    "resize",
-    resize
-);
-
-resize();
 
 
 /* =========================
-   FIND ROOM
+   ROOM JOINING
 ========================= */
 
 async function joinAvailableRoom() {
 
-    if (
-        leaving ||
-        joiningRoom
-    ) {
-        return;
-    }
+    for (let i = 1; i <= 100; i++) {
 
-    joiningRoom = true;
+        const channel = db.channel(
+            "foxxy-hangout-room-" + i,
+            {
+                config: {
+                    broadcast: {
+                        self: false
+                    },
 
-
-    /*
-     * Try rooms one by one.
-     *
-     * Room 1:
-     * foxxy-hangout-room-1
-     *
-     * Room 2:
-     * foxxy-hangout-room-2
-     *
-     * etc.
-     */
-
-    for (
-        let number = 1;
-        number <= 1000;
-        number++
-    ) {
-
-        if (leaving) {
-            return;
-        }
-
-
-        const channel =
-            db.channel(
-                "foxxy-hangout-room-" + number,
-                {
-                    config: {
-
-                        broadcast: {
-                            self: false
-                        },
-
-                        presence: {
-                            key: playerId
-                        }
-
+                    presence: {
+                        key: playerId
                     }
                 }
-            );
+            }
+        );
 
+        await new Promise(resolve => {
 
-        /*
-         * Subscribe to the room.
-         */
+            channel.subscribe(status => {
 
-        const subscribed =
-            await new Promise(
-                function(resolve) {
-
-                    let finished =
-                        false;
-
-                    channel.subscribe(
-                        function(status) {
-
-                            if (finished) {
-                                return;
-                            }
-
-
-                            if (
-                                status ===
-                                "SUBSCRIBED"
-                            ) {
-
-                                finished = true;
-
-                                resolve(true);
-
-                            } else if (
-                                status ===
-                                "CHANNEL_ERROR" ||
-                                status ===
-                                "TIMED_OUT"
-                            ) {
-
-                                finished = true;
-
-                                resolve(false);
-                            }
-                        }
-                    );
+                if (status === "SUBSCRIBED") {
+                    resolve();
                 }
-            );
 
-
-        if (!subscribed) {
-
-            try {
-
-                await db.removeChannel(
-                    channel
-                );
-
-            } catch (error) {}
-
-            continue;
-        }
-
-
-        /*
-         * Get the current players.
-         */
-
-        const presenceState =
-            channel.presenceState();
-
-        const currentPlayers =
-            countPlayers(
-                presenceState
-            );
-
-
-        /*
-         * Room is full.
-         */
-
-        if (
-            currentPlayers >=
-            MAX_PLAYERS
-        ) {
-
-            try {
-
-                await db.removeChannel(
-                    channel
-                );
-
-            } catch (error) {}
-
-            continue;
-        }
-
-
-        /*
-         * This room has space.
-         */
-
-        multiplayerChannel =
-            channel;
-
-        roomNumber =
-            number;
-
-        roomName =
-            "Room " + number;
-
-        joiningRoom =
-            false;
-
-
-        chatTitle.textContent =
-            "Chat · Room " +
-            number;
-
-
-        /*
-         * Track ourselves.
-         */
-
-        await multiplayerChannel.track({
-
-            id: playerId,
-
-            name: playerName
+            });
 
         });
 
+        const state = channel.presenceState();
 
-        /*
-         * Setup events.
-         */
+        let playerCount = 0;
 
-        setupRoomEvents();
+        Object.values(state).forEach(players => {
 
+            playerCount += players.length;
 
-        /*
-         * Send our first position.
-         */
+        });
 
-        sendPlayerPosition();
+        if (playerCount < MAX_PLAYERS) {
 
+            roomChannel = channel;
+            roomNumber = i;
 
-        /*
-         * Show room message.
-         */
+            setupRoomEvents();
 
-        addSystemMessage(
-            "Joined Room " +
-            number +
-            " (" +
-            MAX_PLAYERS +
-            " player max)"
-        );
+            await roomChannel.track({
+                id: playerId,
+                name: playerName
+            });
 
+            roomStatus.textContent =
+                "Room " + roomNumber;
 
-        return;
+            chatHeader.textContent =
+                "Chat · Room " + roomNumber;
+
+            return;
+
+        }
+
+        await db.removeChannel(channel);
     }
 
-
-    joiningRoom =
-        false;
-
-    addSystemMessage(
-        "Could not find an available room."
-    );
-}
-
-
-/* =========================
-   COUNT PLAYERS
-========================= */
-
-function countPlayers(
-    presenceState
-) {
-
-    const ids =
-        new Set();
-
-
-    Object.keys(
-        presenceState || {}
-    ).forEach(
-        function(key) {
-
-            const presences =
-                presenceState[key] || [];
-
-
-            presences.forEach(
-                function(presence) {
-
-                    if (
-                        presence.id
-                    ) {
-
-                        ids.add(
-                            presence.id
-                        );
-
-                    } else {
-
-                        ids.add(key);
-                    }
-                }
-            );
-        }
-    );
-
-
-    return ids.size;
+    roomStatus.textContent =
+        "No available rooms.";
 }
 
 
@@ -707,979 +403,296 @@ function countPlayers(
 
 function setupRoomEvents() {
 
-    if (
-        !multiplayerChannel
-    ) {
-        return;
-    }
+    roomChannel
+        .on(
+            "broadcast",
+            {
+                event: "position"
+            },
+            payload => {
 
+                const data = payload.payload;
 
-    /*
-     * Player positions
-     */
-
-    multiplayerChannel.on(
-        "broadcast",
-        {
-            event: "player_position"
-        },
-        function(payload) {
-
-            const data =
-                payload.payload;
-
-            if (!data) {
-                return;
-            }
-
-
-            if (
-                data.id ===
-                playerId
-            ) {
-                return;
-            }
-
-
-            otherPlayers[data.id] = {
-
-                id:
-                    data.id,
-
-                name:
-                    data.name ||
-                    "Player",
-
-                x:
-                    Number(data.x) || 0,
-
-                y:
-                    Number(data.y) || 0,
-
-                width:
-                    50,
-
-                height:
-                    50,
-
-                color:
-                    "#999999",
-
-                lastSeen:
-                    Date.now()
-            };
-        }
-    );
-
-
-    /*
-     * Player leaves.
-     */
-
-    multiplayerChannel.on(
-        "presence",
-        {
-            event: "leave"
-        },
-        function(payload) {
-
-            const left =
-                payload.leftPresences ||
-                [];
-
-
-            left.forEach(
-                function(presence) {
-
-                    const id =
-                        presence.id ||
-                        presence.key;
-
-
-                    if (id) {
-
-                        delete
-                            otherPlayers[id];
-                    }
+                if (!data || data.id === playerId) {
+                    return;
                 }
-            );
-        }
-    );
 
-
-    /*
-     * Chat
-     */
-
-    multiplayerChannel.on(
-        "broadcast",
-        {
-            event: "chat"
-        },
-        function(payload) {
-
-            const data =
-                payload.payload;
-
-            if (!data) {
-                return;
+                updateRemotePlayer(data);
             }
+        )
 
+        .on(
+            "broadcast",
+            {
+                event: "chat"
+            },
+            payload => {
 
-            /*
-             * Ignore our own message.
-             */
+                const data = payload.payload;
 
-            if (
-                data.id ===
-                playerId
-            ) {
-                return;
+                if (!data || data.id === playerId) {
+                    return;
+                }
+
+                addMessage(
+                    data.name || "Player",
+                    data.message
+                );
             }
+        )
 
+        .on(
+            "presence",
+            {
+                event: "leave"
+            },
+            payload => {
 
-            addChatMessage(
+                const leftIds =
+                    Object.keys(payload.leftPresences || {});
 
-                data.name ||
-                "Player",
+                leftIds.forEach(id => {
 
-                data.message ||
-                ""
-            );
-        }
-    );
+                    const element =
+                        document.getElementById(
+                            "player-" + id
+                        );
+
+                    if (element) {
+                        element.remove();
+                    }
+
+                });
+            }
+        );
 }
 
 
 /* =========================
-   SEND POSITION
+   REMOTE PLAYERS
 ========================= */
 
-function sendPlayerPosition() {
+function updateRemotePlayer(data) {
 
-    if (
-        !multiplayerChannel ||
-        leaving ||
-        !roomNumber
-    ) {
-        return;
+    let player =
+        document.getElementById(
+            "player-" + data.id
+        );
+
+    if (!player) {
+
+        player = document.createElement("div");
+
+        player.id =
+            "player-" + data.id;
+
+        player.className =
+            "player";
+
+        const name =
+            document.createElement("div");
+
+        name.className =
+            "playerName";
+
+        name.textContent =
+            data.name || "Player";
+
+        player.appendChild(name);
+
+        document
+            .getElementById("world")
+            .appendChild(player);
     }
 
+    player.style.left =
+        data.x + "px";
 
-    multiplayerChannel.send({
-
-        type:
-            "broadcast",
-
-        event:
-            "player_position",
-
-        payload: {
-
-            id:
-                playerId,
-
-            name:
-                playerName,
-
-            x:
-                player.x,
-
-            y:
-                player.y
-        }
-
-    });
+    player.style.bottom =
+        (80 + data.y) + "px";
 }
 
 
-setInterval(
-    sendPlayerPosition,
-    50
-);
+/* =========================
+   POSITION BROADCAST
+========================= */
+
+function broadcastPosition() {
+
+    const now = Date.now();
+
+    if (now - lastBroadcast < 50) {
+        return;
+    }
+
+    lastBroadcast = now;
+
+    if (!roomChannel) {
+        return;
+    }
+
+    roomChannel.send({
+        type: "broadcast",
+        event: "position",
+        payload: {
+            id: playerId,
+            name: playerName,
+            x: x,
+            y: y
+        }
+    });
+}
 
 
 /* =========================
    CHAT
 ========================= */
 
-function addChatMessage(
-    name,
-    message
-) {
+function addMessage(name, message) {
 
     const wrapper =
-        document.createElement(
-            "div"
-        );
+        document.createElement("div");
 
     wrapper.className =
-        "chatMessage";
-
+        "message";
 
     const nameElement =
-        document.createElement(
-            "span"
-        );
+        document.createElement("span");
 
     nameElement.className =
-        "chatName";
+        "messageName";
 
     nameElement.textContent =
         name + ":";
 
+    const messageElement =
+        document.createElement("span");
 
-    const textElement =
-        document.createElement(
-            "span"
-        );
-
-    textElement.className =
-        "chatText";
-
-    textElement.textContent =
+    messageElement.textContent =
         " " + message;
 
+    wrapper.appendChild(nameElement);
+    wrapper.appendChild(messageElement);
 
-    wrapper.appendChild(
-        nameElement
-    );
+    messages.appendChild(wrapper);
 
-    wrapper.appendChild(
-        textElement
-    );
-
-
-    chatMessages.appendChild(
-        wrapper
-    );
-
-
-    chatMessages.scrollTop =
-        chatMessages.scrollHeight;
+    messages.scrollTop =
+        messages.scrollHeight;
 }
 
 
-function addSystemMessage(
-    message
-) {
+function sendChatMessage() {
 
-    const wrapper =
-        document.createElement(
-            "div"
-        );
+    const message =
+        chatInput.value.trim();
 
-    wrapper.className =
-        "chatMessage";
+    if (!message || !roomChannel) {
+        return;
+    }
 
-
-    const text =
-        document.createElement(
-            "span"
-        );
-
-    text.className =
-        "chatText";
-
-    text.style.color =
-        "#777";
-
-    text.style.fontStyle =
-        "italic";
-
-    text.textContent =
-        message;
-
-
-    wrapper.appendChild(
-        text
+    addMessage(
+        playerName,
+        message
     );
 
+    roomChannel.send({
+        type: "broadcast",
+        event: "chat",
+        payload: {
+            id: playerId,
+            name: playerName,
+            message: message
+        }
+    });
 
-    chatMessages.appendChild(
-        wrapper
-    );
-
-
-    chatMessages.scrollTop =
-        chatMessages.scrollHeight;
+    chatInput.value = "";
 }
 
 
 chatInput.addEventListener(
     "keydown",
-    function(event) {
+    event => {
 
-        if (
-            event.key !==
-            "Enter"
-        ) {
-            return;
+        if (event.key === "Enter") {
+
+            event.preventDefault();
+
+            sendChatMessage();
         }
 
-
-        const message =
-            chatInput.value.trim();
-
-
-        if (!message) {
-            return;
-        }
-
-
-        /*
-         * Show our own message.
-         */
-
-        addChatMessage(
-            playerName,
-            message
-        );
-
-
-        /*
-         * Send to everyone
-         * in our room.
-         */
-
-        if (
-            multiplayerChannel &&
-            roomNumber
-        ) {
-
-            multiplayerChannel.send({
-
-                type:
-                    "broadcast",
-
-                event:
-                    "chat",
-
-                payload: {
-
-                    id:
-                        playerId,
-
-                    name:
-                        playerName,
-
-                    message:
-                        message
-
-                }
-
-            });
-        }
-
-
-        chatInput.value =
-            "";
     }
 );
 
 
 /* =========================
-   INPUT
+   MOVEMENT
 ========================= */
 
-window.addEventListener(
+document.addEventListener(
     "keydown",
-    function(event) {
-
-        /*
-         * Disable movement
-         * while typing.
-         */
+    event => {
 
         if (
-            document.activeElement ===
-            chatInput
+            document.activeElement === chatInput
         ) {
             return;
         }
 
-
         if (
             event.key === "a" ||
-            event.key === "A"
+            event.key === "A" ||
+            event.key === "ArrowLeft"
         ) {
-
-            keys.a = true;
+            keys.left = true;
         }
-
 
         if (
             event.key === "d" ||
-            event.key === "D"
+            event.key === "D" ||
+            event.key === "ArrowRight"
         ) {
-
-            keys.d = true;
+            keys.right = true;
         }
 
-
         if (
-            event.code ===
-            "Space"
+            event.code === "Space"
         ) {
 
-            if (
-                !keys.space &&
-                player.grounded
-            ) {
+            if (onGround) {
 
-                player.velocityY =
-                    -player.jumpPower;
-
-                player.grounded =
-                    false;
+                velocityY = 12;
+                onGround = false;
             }
-
-
-            keys.space =
-                true;
 
             event.preventDefault();
         }
+
     }
 );
 
 
-window.addEventListener(
+document.addEventListener(
     "keyup",
-    function(event) {
+    event => {
 
         if (
             event.key === "a" ||
-            event.key === "A"
+            event.key === "A" ||
+            event.key === "ArrowLeft"
         ) {
-
-            keys.a =
-                false;
+            keys.left = false;
         }
-
 
         if (
             event.key === "d" ||
-            event.key === "D"
+            event.key === "D" ||
+            event.key === "ArrowRight"
         ) {
-
-            keys.d =
-                false;
+            keys.right = false;
         }
 
-
-        if (
-            event.code ===
-            "Space"
-        ) {
-
-            keys.space =
-                false;
-        }
     }
 );
-
-
-/*
- * Clear movement when
- * chat receives focus.
- */
-
-chatInput.addEventListener(
-    "focus",
-    function() {
-
-        keys.a =
-            false;
-
-        keys.d =
-            false;
-
-        keys.space =
-            false;
-
-        player.velocityX =
-            0;
-    }
-);
-
-
-/* =========================
-   LEAVE
-========================= */
-
-leaveButton.addEventListener(
-    "click",
-    async function() {
-
-        if (leaving) {
-            return;
-        }
-
-
-        leaving =
-            true;
-
-
-        keys.a =
-            false;
-
-        keys.d =
-            false;
-
-        keys.space =
-            false;
-
-
-        if (
-            multiplayerChannel
-        ) {
-
-            try {
-
-                await
-                    db.removeChannel(
-                        multiplayerChannel
-                    );
-
-            } catch (error) {
-
-                console.error(
-                    "Leave error:",
-                    error
-                );
-            }
-
-
-            multiplayerChannel =
-                null;
-        }
-
-
-        window.location.href =
-            "../index.html";
-    }
-);
-
-
-/* =========================
-   GAME UPDATE
-========================= */
-
-function update() {
-
-    player.velocityX =
-        0;
-
-
-    if (
-        document.activeElement !==
-        chatInput
-    ) {
-
-        if (keys.a) {
-
-            player.velocityX =
-                -player.speed;
-        }
-
-
-        if (keys.d) {
-
-            player.velocityX =
-                player.speed;
-        }
-    }
-
-
-    player.x +=
-        player.velocityX;
-
-
-    /*
-     * Gravity
-     */
-
-    player.velocityY +=
-        player.gravity;
-
-    player.y +=
-        player.velocityY;
-
-
-    /*
-     * Floor
-     */
-
-    const floorY =
-        room.height - 50;
-
-
-    if (
-        player.y +
-        player.height >=
-        floorY
-    ) {
-
-        player.y =
-            floorY -
-            player.height;
-
-        player.velocityY =
-            0;
-
-        player.grounded =
-            true;
-
-    } else {
-
-        player.grounded =
-            false;
-    }
-
-
-    /*
-     * Left wall
-     */
-
-    if (
-        player.x < 20
-    ) {
-
-        player.x =
-            20;
-    }
-
-
-    /*
-     * Right wall
-     */
-
-    if (
-        player.x +
-        player.width >
-        room.width - 20
-    ) {
-
-        player.x =
-            room.width -
-            20 -
-            player.width;
-    }
-
-
-    /*
-     * Remove stale players.
-     */
-
-    const now =
-        Date.now();
-
-
-    Object.keys(
-        otherPlayers
-    ).forEach(
-        function(id) {
-
-            if (
-                now -
-                otherPlayers[id].lastSeen >
-                5000
-            ) {
-
-                delete
-                    otherPlayers[id];
-            }
-        }
-    );
-}
-
-
-/* =========================
-   DRAW PLAYER
-========================= */
-
-function drawPlayer(
-    p,
-    offsetX,
-    offsetY
-) {
-
-    ctx.font =
-        "bold 16px Arial";
-
-    ctx.textAlign =
-        "center";
-
-
-    const name =
-        p.name ||
-        "Player";
-
-
-    const nameWidth =
-        ctx.measureText(
-            name
-        ).width + 16;
-
-
-    const nameHeight =
-        24;
-
-
-    const centerX =
-        offsetX +
-        p.x +
-        p.width / 2;
-
-
-    const nameY =
-        offsetY +
-        p.y -
-        10;
-
-
-    /*
-     * Name background
-     */
-
-    ctx.fillStyle =
-        "rgba(0,0,0,0.65)";
-
-
-    ctx.fillRect(
-
-        centerX -
-        nameWidth / 2,
-
-        nameY -
-        nameHeight,
-
-        nameWidth,
-
-        nameHeight
-    );
-
-
-    /*
-     * Name
-     */
-
-    ctx.fillStyle =
-        "#ffffff";
-
-
-    ctx.fillText(
-
-        name,
-
-        centerX,
-
-        nameY - 6
-    );
-
-
-    /*
-     * Body
-     */
-
-    ctx.fillStyle =
-        p.color ||
-        "#999999";
-
-
-    ctx.fillRect(
-
-        offsetX +
-        p.x,
-
-        offsetY +
-        p.y,
-
-        p.width,
-
-        p.height
-    );
-
-
-    /*
-     * Outline
-     */
-
-    ctx.strokeStyle =
-        "#666666";
-
-    ctx.lineWidth =
-        2;
-
-
-    ctx.strokeRect(
-
-        offsetX +
-        p.x,
-
-        offsetY +
-        p.y,
-
-        p.width,
-
-        p.height
-    );
-}
-
-
-/* =========================
-   DRAW
-========================= */
-
-function draw() {
-
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
-
-    /*
-     * Outside
-     */
-
-    ctx.fillStyle =
-        "#181818";
-
-
-    ctx.fillRect(
-
-        0,
-        0,
-
-        canvas.width,
-        canvas.height
-    );
-
-
-    /*
-     * Room
-     */
-
-    ctx.fillStyle =
-        "#f3f3f3";
-
-
-    ctx.fillRect(
-
-        roomX,
-        roomY,
-
-        room.width,
-        room.height
-    );
-
-
-    /*
-     * Floor
-     */
-
-    ctx.fillStyle =
-        "#d0d0d0";
-
-
-    ctx.fillRect(
-
-        roomX,
-
-        roomY +
-        room.height -
-        50,
-
-        room.width,
-        50
-    );
-
-
-    /*
-     * Walls
-     */
-
-    ctx.fillStyle =
-        "#c0c0c0";
-
-
-    ctx.fillRect(
-
-        roomX,
-        roomY,
-
-        20,
-        room.height
-    );
-
-
-    ctx.fillRect(
-
-        roomX +
-        room.width -
-        20,
-
-        roomY,
-
-        20,
-        room.height
-    );
-
-
-    /*
-     * Other players
-     */
-
-    Object.keys(
-        otherPlayers
-    ).forEach(
-        function(id) {
-
-            drawPlayer(
-
-                otherPlayers[id],
-
-                roomX,
-                roomY
-            );
-        }
-    );
-
-
-    /*
-     * Our player
-     */
-
-    drawPlayer(
-
-        {
-            x:
-                player.x,
-
-            y:
-                player.y,
-
-            width:
-                player.width,
-
-            height:
-                player.height,
-
-            color:
-                player.color,
-
-            name:
-                playerName
-        },
-
-        roomX,
-        roomY
-    );
-}
 
 
 /* =========================
@@ -1688,17 +701,110 @@ function draw() {
 
 function gameLoop() {
 
-    update();
+    const world =
+        document.getElementById("world");
 
-    draw();
+    const maxX =
+        world.clientWidth - 25 - 21;
 
-    requestAnimationFrame(
-        gameLoop
+    if (document.activeElement !== chatInput) {
+
+        if (keys.left) {
+            x -= 5;
+        }
+
+        if (keys.right) {
+            x += 5;
+        }
+
+    }
+
+    x = Math.max(
+        25 + 21,
+        Math.min(maxX, x)
     );
+
+    velocityY -= 0.6;
+
+    y += velocityY;
+
+    if (y <= 0) {
+
+        y = 0;
+        velocityY = 0;
+        onGround = true;
+    }
+
+    localPlayer.style.left =
+        x + "px";
+
+    localPlayer.style.bottom =
+        (80 + y) + "px";
+
+    broadcastPosition();
+
+    requestAnimationFrame(gameLoop);
 }
 
 
-gameLoop();
+/* =========================
+   LEAVE
+========================= */
+
+document
+    .getElementById("leaveButton")
+    .addEventListener(
+        "click",
+        async () => {
+
+            if (roomChannel) {
+
+                try {
+                    await db.removeChannel(
+                        roomChannel
+                    );
+                } catch (error) {
+                    console.error(error);
+                }
+
+                roomChannel = null;
+            }
+
+            if (lobbyChannel) {
+
+                try {
+                    await db.removeChannel(
+                        lobbyChannel
+                    );
+                } catch (error) {
+                    console.error(error);
+                }
+
+                lobbyChannel = null;
+            }
+
+            window.location.href =
+                "../index.html";
+        }
+    );
+
+
+/* =========================
+   START
+========================= */
+
+async function start() {
+
+    await loadPlayer();
+
+    await joinAvailableRoom();
+
+    await joinLobby();
+
+    gameLoop();
+}
+
+start();
 
 </script>
 
