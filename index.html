@@ -215,6 +215,101 @@
         .sidebar a:hover {
             background: #e5e5e5;
         }
+
+        /* SEARCH */
+
+        .searchArea {
+            width: 100%;
+            padding: 30px 40px 0 40px;
+        }
+
+        .searchBox {
+            width: 100%;
+            max-width: 600px;
+            height: 46px;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            padding: 0 15px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .searchBox:focus {
+            border-color: #999;
+        }
+
+        .searchResults {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 12px;
+        }
+
+        .searchResult {
+            width: 100%;
+            min-height: 72px;
+            border: 1px solid #ddd;
+            border-radius: 7px;
+            background: #f7f7f7;
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+        }
+
+        .searchResultPic {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ddd;
+            flex-shrink: 0;
+        }
+
+        .searchResultInfo {
+            flex: 1;
+            min-width: 0;
+            margin-left: 12px;
+        }
+
+        .searchResultName {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .searchResultUsername {
+            font-size: 13px;
+            color: #777;
+            margin-top: 3px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .viewProfileButton {
+            border: none;
+            background: #111;
+            color: white;
+            border-radius: 5px;
+            padding: 9px 13px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .viewProfileButton:hover {
+            background: #333;
+        }
+
+        .noResults {
+            color: #777;
+            font-size: 14px;
+            padding: 8px 2px;
+        }
     </style>
 </head>
 
@@ -297,6 +392,25 @@
         <a href="settings.html">
             Settings
         </a>
+
+    </div>
+
+    <!-- SEARCH -->
+
+    <div class="searchArea">
+
+        <input
+            id="searchInput"
+            class="searchBox"
+            type="text"
+            placeholder="Search users by username..."
+            autocomplete="off"
+        >
+
+        <div
+            id="searchResults"
+            class="searchResults"
+        ></div>
 
     </div>
 
@@ -391,6 +505,7 @@
             }
 
             const user = session.user;
+
             const metadata =
                 user.user_metadata || {};
 
@@ -431,6 +546,155 @@
                     .getElementById("verificationBadge")
                     .style.display = "inline-flex";
             }
+        }
+
+        /* SEARCH USERS */
+
+        let searchTimeout = null;
+
+        document
+            .getElementById("searchInput")
+            .addEventListener("input", function() {
+
+                clearTimeout(searchTimeout);
+
+                const search =
+                    this.value.trim();
+
+                if (!search) {
+
+                    document
+                        .getElementById("searchResults")
+                        .innerHTML = "";
+
+                    return;
+                }
+
+                searchTimeout = setTimeout(
+                    () => searchUsers(search),
+                    250
+                );
+            });
+
+        async function searchUsers(search) {
+
+            const results =
+                document.getElementById(
+                    "searchResults"
+                );
+
+            results.innerHTML =
+                '<div class="noResults">Searching...</div>';
+
+            const { data, error } =
+                await db
+                    .from("profiles")
+                    .select(
+                        "uuid, username, display_name, avatar_url"
+                    )
+                    .ilike(
+                        "username",
+                        "%" + search + "%"
+                    )
+                    .limit(10);
+
+            if (error) {
+
+                console.error(
+                    "Search error:",
+                    error
+                );
+
+                results.innerHTML =
+                    '<div class="noResults">Could not search users.</div>';
+
+                return;
+            }
+
+            if (!data || data.length === 0) {
+
+                results.innerHTML =
+                    '<div class="noResults">No users found.</div>';
+
+                return;
+            }
+
+            results.innerHTML = "";
+
+            data.forEach(function(user) {
+
+                const result =
+                    document.createElement("div");
+
+                result.className =
+                    "searchResult";
+
+                const image =
+                    document.createElement("img");
+
+                image.className =
+                    "searchResultPic";
+
+                image.src =
+                    user.avatar_url || "";
+
+                image.alt =
+                    "Profile picture";
+
+                const info =
+                    document.createElement("div");
+
+                info.className =
+                    "searchResultInfo";
+
+                const name =
+                    document.createElement("div");
+
+                name.className =
+                    "searchResultName";
+
+                name.textContent =
+                    user.display_name ||
+                    user.username ||
+                    "Player";
+
+                const username =
+                    document.createElement("div");
+
+                username.className =
+                    "searchResultUsername";
+
+                username.textContent =
+                    "@" + user.username;
+
+                info.appendChild(name);
+                info.appendChild(username);
+
+                const button =
+                    document.createElement("button");
+
+                button.className =
+                    "viewProfileButton";
+
+                button.textContent =
+                    "View Profile";
+
+                button.onclick =
+                    function() {
+
+                        window.location.href =
+                            "profile.html?user=" +
+                            encodeURIComponent(
+                                user.uuid
+                            );
+                    };
+
+                result.appendChild(image);
+                result.appendChild(info);
+                result.appendChild(button);
+
+                results.appendChild(result);
+            });
         }
 
         document.addEventListener(
