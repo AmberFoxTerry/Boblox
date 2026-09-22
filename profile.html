@@ -9,259 +9,240 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
-    body {
-        background: #111;
-        color: white;
-        font-family: Arial, sans-serif;
-        min-height: 100vh;
-    }
+body {
+    font-family: Arial, sans-serif;
+    background: #f5f5f5;
+    color: #111;
+}
 
-    /* TOP BAR */
+/* TOP BAR */
 
-    .topbar {
-        height: 60px;
-        background: #ff8c00;
-        display: flex;
-        align-items: center;
-        padding: 0 20px;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        z-index: 1000;
-    }
+.topbar {
+    height: 60px;
+    background: #ff8c00;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
 
-    .menu-button {
-        font-size: 28px;
-        cursor: pointer;
-        margin-right: 20px;
-        user-select: none;
-    }
+.menu-button {
+    font-size: 28px;
+    cursor: pointer;
+    margin-right: 20px;
+    user-select: none;
+}
 
-    .logo {
-        font-size: 25px;
-        font-weight: bold;
-    }
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+}
 
-    /* SIDEBAR */
+/* SIDEBAR */
 
-    .sidebar {
-        position: fixed;
-        top: 60px;
-        left: 0;
-        width: 220px;
-        height: calc(100vh - 60px);
-        background: #181818;
-        border-right: 1px solid #333;
-        padding-top: 20px;
-        transform: translateX(-220px);
-        transition: transform 0.2s ease;
-        z-index: 999;
-    }
+.sidebar {
+    position: fixed;
+    top: 60px;
+    left: 0;
+    width: 220px;
+    height: calc(100vh - 60px);
+    background: white;
+    border-right: 1px solid #ddd;
+    padding-top: 20px;
+    transform: translateX(-220px);
+    transition: transform 0.2s ease;
+    z-index: 999;
+}
 
-    .sidebar.open {
-        transform: translateX(0);
-    }
+.sidebar.open {
+    transform: translateX(0);
+}
 
-    .sidebar a {
-        display: block;
-        color: white;
-        text-decoration: none;
-        padding: 16px 22px;
-        font-size: 17px;
-    }
+.sidebar a {
+    display: block;
+    color: #111;
+    text-decoration: none;
+    padding: 16px 22px;
+    font-size: 17px;
+}
 
-    .sidebar a:hover {
-        background: #252525;
-    }
+.sidebar a:hover {
+    background: #f0f0f0;
+}
 
-    /* MAIN */
+/* MAIN */
 
-    .main {
-        padding: 60px 40px 40px;
-        min-height: 100vh;
-    }
+.main {
+    padding: 60px 40px 40px;
+}
 
-    .profile-container {
-        max-width: 1000px;
-        margin: 0 auto;
-        padding-top: 180px;
-    }
+.profile-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-top: 180px;
+}
 
-    /* PROFILE HEADER */
+/* PROFILE */
 
-    .profile-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 50px;
-    }
+.profile-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-    .profile-info {
-        display: flex;
-        align-items: center;
-        gap: 20px;
-    }
+.profile-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
 
-    .profile-pfp {
-        width: 110px;
-        height: 110px;
-        border-radius: 50%;
-        object-fit: cover;
-        background: #222;
-    }
+.profile-pfp {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+}
 
-    .display-name-row {
-        display: flex;
-        align-items: center;
-    }
+.profile-name {
+    display: flex;
+    align-items: center;
+    font-size: 30px;
+    font-weight: bold;
+}
 
-    .display-name {
-        font-size: 32px;
-        font-weight: bold;
-    }
+/* VERIFIED */
 
-    /* VERIFICATION HEART */
+.verified {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-left: 5px;
+    flex-shrink: 0;
+}
 
-    .verified {
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 26px;
-        height: 26px;
-        margin-left: 7px;
-        flex-shrink: 0;
-    }
+.verified::before {
+    content: "♥";
+    position: absolute;
+    color: #ff69b4;
+    font-size: 26px;
+    line-height: 26px;
+}
 
-    .verified::before {
-        content: "♥";
-        position: absolute;
-        color: #ff69b4;
-        font-size: 26px;
-        line-height: 26px;
-    }
+.verified span {
+    position: relative;
+    z-index: 1;
+    color: white;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1;
+    transform: translateY(-1px);
+}
 
-    .verified span {
-        position: relative;
-        z-index: 1;
-        color: white;
-        font-size: 12px;
-        font-weight: 900;
-        line-height: 1;
-        transform: translateY(-1px);
-    }
+/* CHARACTER PREVIEW */
 
-    /* CHARACTER PREVIEW */
+.character-preview {
+    width: 180px;
+    height: 180px;
+    background: #eee;
+    border: 1px solid #ccc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    .character-preview {
-        width: 220px;
-        height: 220px;
-        background: #181818;
-        border: 1px solid #333;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 12px;
-    }
+.character {
+    width: 120px;
+    height: 120px;
+    background: #999;
+}
 
-    .character {
-        width: 140px;
-        height: 140px;
-        background: #777;
-        border-radius: 8px;
-        box-shadow:
-            inset 0 0 0 4px #555,
-            0 10px 25px rgba(0, 0, 0, 0.5);
-    }
+/* DIVIDER */
 
-    /* DIVIDERS */
+.divider {
+    height: 1px;
+    background: #ddd;
+    margin: 40px 0;
+}
 
-    .divider {
-        height: 1px;
-        background: #333;
-        margin: 45px 0;
-    }
+/* SECTIONS */
 
-    /* SECTIONS */
+.section-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+}
 
-    .section-title {
-        font-size: 24px;
-        margin-bottom: 20px;
-    }
+/* CURRENTLY WEARING */
 
-    .wearing {
-        min-height: 80px;
-        color: #aaa;
-        font-size: 16px;
-    }
+.wearing-items {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
 
-    .bio {
-        color: #ddd;
-        font-size: 17px;
-        line-height: 1.6;
-        white-space: pre-wrap;
-        word-break: break-word;
-        min-height: 40px;
-    }
+.item-box {
+    width: 160px;
+    background: white;
+    border: 1px solid #ddd;
+    padding: 15px;
+}
 
-    .empty {
-        color: #666;
-    }
+.item-preview {
+    width: 100%;
+    height: 120px;
+    background: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
 
-    /* MOBILE */
+.item-preview-inner {
+    width: 75px;
+    height: 75px;
+    background: #999;
+}
 
-    @media (max-width: 700px) {
-        .main {
-            padding-left: 20px;
-            padding-right: 20px;
-        }
+.item-name {
+    font-size: 16px;
+    font-weight: bold;
+}
 
-        .profile-container {
-            padding-top: 120px;
-        }
+/* BIO */
 
-        .profile-header {
-            flex-direction: column;
-            align-items: flex-start;
-        }
+.bio {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 15px;
+    min-height: 60px;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
 
-        .character-preview {
-            align-self: center;
-        }
-
-        .profile-info {
-            width: 100%;
-        }
-
-        .profile-pfp {
-            width: 85px;
-            height: 85px;
-        }
-
-        .display-name {
-            font-size: 25px;
-        }
-    }
+.empty {
+    color: #888;
+}
 </style>
 </head>
 
 <body>
 
-<!-- TOP BAR -->
-
 <div class="topbar">
     <div class="menu-button" onclick="toggleSidebar()">☰</div>
     <div class="logo">FoxxyDen</div>
 </div>
-
-<!-- SIDEBAR -->
 
 <div class="sidebar" id="sidebar">
     <a href="shop.html">Shop</a>
@@ -269,17 +250,13 @@
     <a href="settings.html">Settings</a>
 </div>
 
-<!-- MAIN -->
-
 <div class="main">
 
     <div class="profile-container">
 
-        <!-- PROFILE HEADER -->
+        <div class="profile-top">
 
-        <div class="profile-header">
-
-            <div class="profile-info">
+            <div class="profile-left">
 
                 <img
                     id="profilePfp"
@@ -288,15 +265,13 @@
                     alt="Profile picture"
                 >
 
-                <div class="display-name-row">
-                    <div id="displayName" class="display-name">
-                        Player
-                    </div>
+                <div class="profile-name">
+                    <span id="displayName">Player</span>
 
                     <div
                         id="verifiedBadge"
                         class="verified"
-                        style="display: none;"
+                        style="display:none;"
                     >
                         <span>✓</span>
                     </div>
@@ -304,31 +279,39 @@
 
             </div>
 
-            <!-- SAME CHARACTER PREVIEW -->
+            <!-- SAME DEFAULT CHARACTER PREVIEW -->
 
             <div class="character-preview">
-                <div class="character" id="characterPreview"></div>
+                <div class="character"></div>
             </div>
 
         </div>
 
         <div class="divider"></div>
 
-        <!-- CURRENTLY WEARING -->
-
         <h2 class="section-title">
             Currently wearing
         </h2>
 
-        <div id="wearing" class="wearing">
-            <span class="empty">
-                Default Gray
-            </span>
+        <!-- SAME STYLE OF ITEM BOX, WITHOUT EQUIP BUTTON -->
+
+        <div class="wearing-items">
+
+            <div class="item-box">
+
+                <div class="item-preview">
+                    <div class="item-preview-inner"></div>
+                </div>
+
+                <div class="item-name">
+                    Default Gray
+                </div>
+
+            </div>
+
         </div>
 
         <div class="divider"></div>
-
-        <!-- BIO -->
 
         <h2 class="section-title">
             Bio
@@ -357,24 +340,15 @@ const db = supabase.createClient(
     SUPABASE_KEY
 );
 
-
-/* VERIFIED USERS */
-
 const VERIFIED_UIDS = [
     "ca2cdea0-9fbd-4380-a34b-e505540ade35"
 ];
-
-
-/* SIDEBAR */
 
 function toggleSidebar() {
     document
         .getElementById("sidebar")
         .classList.toggle("open");
 }
-
-
-/* LOAD PROFILE */
 
 async function loadProfile() {
 
@@ -390,9 +364,6 @@ async function loadProfile() {
     }
 
     const currentUser = session.user;
-
-    /* DISCORD DISPLAY NAME */
-
     const metadata = currentUser.user_metadata || {};
 
     const displayName =
@@ -405,10 +376,7 @@ async function loadProfile() {
     document.getElementById("displayName").textContent =
         displayName;
 
-
-    /* DISCORD PROFILE PICTURE */
-
-    let avatarUrl =
+    const avatarUrl =
         metadata.avatar_url ||
         metadata.picture ||
         "";
@@ -418,16 +386,10 @@ async function loadProfile() {
             avatarUrl;
     }
 
-
-    /* VERIFIED BADGE */
-
     if (VERIFIED_UIDS.includes(currentUser.id)) {
         document.getElementById("verifiedBadge").style.display =
             "inline-flex";
     }
-
-
-    /* LOAD DATABASE PROFILE */
 
     const {
         data,
@@ -439,52 +401,22 @@ async function loadProfile() {
         .single();
 
     if (error) {
-        console.error(
-            "Failed to load profile:",
-            error
-        );
+        console.error(error);
         return;
     }
 
-
-    /* BIO */
-
-    const bioElement =
-        document.getElementById("bio");
-
     if (data.bio && data.bio.trim() !== "") {
 
-        bioElement.textContent =
+        document.getElementById("bio").textContent =
             data.bio;
 
     } else {
 
-        bioElement.innerHTML =
+        document.getElementById("bio").innerHTML =
             '<span class="empty">No bio yet.</span>';
 
     }
-
-
-    /* OWNED ITEMS */
-
-    /*
-        For now the character is always
-        the default gray character.
-
-        Later this is where the owned/equipped
-        items can be used to build the character.
-    */
-
-    const wearingElement =
-        document.getElementById("wearing");
-
-    wearingElement.innerHTML =
-        '<span class="empty">Default Gray</span>';
-
 }
-
-
-/* START */
 
 loadProfile();
 
