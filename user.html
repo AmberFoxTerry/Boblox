@@ -319,10 +319,9 @@
             margin-bottom: 12px;
         }
 
-        .wearingItemPreview .grayItem {
+        .wearingItemPreview .itemPreview {
             width: 90px;
             height: 90px;
-            background: #999;
             border-radius: 4px;
         }
 
@@ -330,6 +329,14 @@
             font-size: 16px;
             font-weight: 700;
             color: #111;
+        }
+
+        .wearingCreator {
+            display: flex;
+            align-items: center;
+            margin-top: 5px;
+            font-size: 13px;
+            color: #666;
         }
 
         /* BIO */
@@ -529,12 +536,22 @@
 
                 <div class="wearingItemPreview">
 
-                    <div class="grayItem"></div>
+                    <div class="itemPreview"></div>
 
                 </div>
 
-                <div class="wearingItemName">
+                <div
+                    id="wearingName"
+                    class="wearingItemName"
+                >
                     Default Gray
+                </div>
+
+                <div
+                    id="wearingCreator"
+                    class="wearingCreator"
+                >
+                    Creator: FoxxyDen Default
                 </div>
 
             </div>
@@ -579,7 +596,55 @@
         );
 
 
+        const customizationItems = [
+
+            {
+                id: "gray",
+                name: "Default Gray",
+                color: "#999",
+                creator: "FoxxyDen Default",
+                verified: false
+            },
+
+            {
+                id: "red",
+                name: "Red",
+                color: "red",
+                creator: "Terry",
+                verified: true
+            },
+
+            {
+                id: "green",
+                name: "Green",
+                color: "green",
+                creator: "Terry",
+                verified: true
+            },
+
+            {
+                id: "blue",
+                name: "Blue",
+                color: "blue",
+                creator: "Terry",
+                verified: true
+            }
+
+        ];
+
+
         let currentUser = null;
+
+
+        function getCustomizationItem(id) {
+
+            return (
+                customizationItems.find(
+                    item => item.id === id
+                ) ||
+                customizationItems[0]
+            );
+        }
 
 
         function toggleMenu() {
@@ -710,6 +775,56 @@
         }
 
 
+        function renderCustomization(item) {
+
+            const character =
+                document.querySelector(
+                    ".character"
+                );
+
+            const itemPreview =
+                document.querySelector(
+                    ".itemPreview"
+                );
+
+            character.style.background =
+                item.color;
+
+            itemPreview.style.background =
+                item.color;
+
+            document
+                .getElementById("wearingName")
+                .textContent =
+                    item.name;
+
+            const creatorElement =
+                document.getElementById(
+                    "wearingCreator"
+                );
+
+            creatorElement.innerHTML =
+                "Creator: " +
+                item.creator;
+
+            if (item.verified) {
+
+                creatorElement.innerHTML += `
+                    <span
+                        class="verified"
+                        style="
+                            width: 20px;
+                            height: 20px;
+                            margin-left: 3px;
+                        "
+                    >
+                        <span>✓</span>
+                    </span>
+                `;
+            }
+        }
+
+
         async function loadUser() {
 
             const params =
@@ -736,7 +851,7 @@
                 await db
                     .from("profiles")
                     .select(
-                        "uuid, username, display_name, avatar_url, bio, owned"
+                        "uuid, username, display_name, avatar_url, bio, owned, equipped"
                     )
                     .eq("username", username)
                     .single();
@@ -792,6 +907,20 @@
                     .style.display =
                         "inline-flex";
             }
+
+
+            const equipped =
+                data.equipped ||
+                "gray";
+
+            const customization =
+                getCustomizationItem(
+                    equipped
+                );
+
+            renderCustomization(
+                customization
+            );
 
 
             const bioElement =
