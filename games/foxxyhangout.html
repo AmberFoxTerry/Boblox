@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Foxxy Hangout</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #111;
+            overflow: hidden;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+
+window.addEventListener("resize", resize);
+resize();
+
+
+/* =========================
+   ROOM
+========================= */
+
+const room = {
+    x: 100,
+    y: 100,
+    width: 1200,
+    height: 600,
+
+    floorHeight: 40,
+    wallWidth: 40
+};
+
+
+/* =========================
+   PLAYER
+========================= */
+
+const player = {
+    x: 300,
+    y: 400,
+
+    width: 50,
+    height: 50,
+
+    velocityX: 0,
+    velocityY: 0,
+
+    speed: 5,
+    jumpPower: 13,
+
+    grounded: false,
+
+    displayName: "Player",
+
+    color: "#5865F2"
+};
+
+
+/* =========================
+   PHYSICS
+========================= */
+
+const gravity = 0.6;
+
+const keys = {
+    a: false,
+    d: false,
+    space: false
+};
+
+window.addEventListener("keydown", function(event) {
+
+    if (event.key === "a" || event.key === "A") {
+        keys.a = true;
+    }
+
+    if (event.key === "d" || event.key === "D") {
+        keys.d = true;
+    }
+
+    if (event.code === "Space") {
+
+        if (!keys.space && player.grounded) {
+            player.velocityY = -player.jumpPower;
+            player.grounded = false;
+        }
+
+        keys.space = true;
+        event.preventDefault();
+    }
+});
+
+
+window.addEventListener("keyup", function(event) {
+
+    if (event.key === "a" || event.key === "A") {
+        keys.a = false;
+    }
+
+    if (event.key === "d" || event.key === "D") {
+        keys.d = false;
+    }
+
+    if (event.code === "Space") {
+        keys.space = false;
+    }
+});
+
+
+/* =========================
+   UPDATE
+========================= */
+
+function update() {
+
+    player.velocityX = 0;
+
+    if (keys.a) {
+        player.velocityX = -player.speed;
+    }
+
+    if (keys.d) {
+        player.velocityX = player.speed;
+    }
+
+    player.x += player.velocityX;
+
+    /* Left wall */
+
+    const leftWall =
+        room.x + room.wallWidth;
+
+    if (player.x < leftWall) {
+        player.x = leftWall;
+    }
+
+    /* Right wall */
+
+    const rightWall =
+        room.x +
+        room.width -
+        room.wallWidth -
+        player.width;
+
+    if (player.x > rightWall) {
+        player.x = rightWall;
+    }
+
+
+    /* Gravity */
+
+    player.velocityY += gravity;
+
+    player.y += player.velocityY;
+
+
+    /* Floor */
+
+    const floorY =
+        room.y +
+        room.height -
+        room.floorHeight -
+        player.height;
+
+    if (player.y >= floorY) {
+
+        player.y = floorY;
+
+        player.velocityY = 0;
+        player.grounded = true;
+
+    } else {
+
+        player.grounded = false;
+    }
+
+
+    /* Ceiling */
+
+    const ceilingY =
+        room.y + room.wallWidth;
+
+    if (player.y < ceilingY) {
+
+        player.y = ceilingY;
+
+        if (player.velocityY < 0) {
+            player.velocityY = 0;
+        }
+    }
+}
+
+
+/* =========================
+   DRAW
+========================= */
+
+function draw() {
+
+    ctx.clearRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    /* Background */
+
+    ctx.fillStyle = "#181818";
+
+    ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+    );
+
+
+    /* Room */
+
+    ctx.fillStyle = "#f3f3f3";
+
+    ctx.fillRect(
+        room.x,
+        room.y,
+        room.width,
+        room.height
+    );
+
+
+    /* Floor */
+
+    ctx.fillStyle = "#d0d0d0";
+
+    ctx.fillRect(
+        room.x,
+        room.y +
+            room.height -
+            room.floorHeight,
+        room.width,
+        room.floorHeight
+    );
+
+
+    /* Left wall */
+
+    ctx.fillStyle = "#c0c0c0";
+
+    ctx.fillRect(
+        room.x,
+        room.y,
+        room.wallWidth,
+        room.height
+    );
+
+
+    /* Right wall */
+
+    ctx.fillRect(
+        room.x +
+            room.width -
+            room.wallWidth,
+        room.y,
+        room.wallWidth,
+        room.height
+    );
+
+
+    /* Ceiling */
+
+    ctx.fillRect(
+        room.x,
+        room.y,
+        room.width,
+        room.wallWidth
+    );
+
+
+    /* Player */
+
+    ctx.fillStyle = player.color;
+
+    ctx.fillRect(
+        player.x,
+        player.y,
+        player.width,
+        player.height
+    );
+
+
+    /* Cosmetic placeholder */
+
+    // Nothing equipped yet.
+    // Cosmetics can be drawn here later.
+
+
+    /* Display name */
+
+    ctx.font = "bold 16px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "bottom";
+
+    const nameX =
+        player.x +
+        player.width / 2;
+
+    const nameY =
+        player.y - 8;
+
+    /* Name background */
+
+    const textWidth =
+        ctx.measureText(
+            player.displayName
+        ).width;
+
+    ctx.fillStyle =
+        "rgba(0, 0, 0, 0.65)";
+
+    ctx.fillRect(
+        nameX -
+            textWidth / 2 -
+            6,
+        nameY - 17,
+        textWidth + 12,
+        21
+    );
+
+
+    /* Name */
+
+    ctx.fillStyle = "white";
+
+    ctx.fillText(
+        player.displayName,
+        nameX,
+        nameY
+    );
+}
+
+
+/* =========================
+   GAME LOOP
+========================= */
+
+function gameLoop() {
+
+    update();
+    draw();
+
+    requestAnimationFrame(
+        gameLoop
+    );
+}
+
+gameLoop();
+</script>
+
+</body>
+</html>
