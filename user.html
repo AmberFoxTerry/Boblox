@@ -3,103 +3,75 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>FoxxyDen - Profile</title>
+    <title>FoxxyDen - User</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
         }
 
         body {
+            margin: 0;
+            font-family: Arial, sans-serif;
             background: white;
-            font-family: Arial, Helvetica, sans-serif;
             color: #111;
         }
 
-        /* TOP BAR */
-
         .topbar {
-            width: 100%;
             height: 64px;
             background: #f3f3f3;
             display: flex;
             align-items: center;
-            padding-left: 18px;
-            border-bottom: 1px solid #dedede;
-            position: relative;
+            padding: 0 20px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
         }
 
-        .menu {
-            width: 28px;
-            height: 22px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
+        .menuButton {
+            width: 42px;
+            height: 42px;
+            border: none;
+            background: transparent;
+            font-size: 25px;
             cursor: pointer;
-        }
-
-        .menu span {
-            width: 100%;
-            height: 3px;
-            background: #111;
-            border-radius: 2px;
+            margin-right: 15px;
         }
 
         .logo {
-            margin-left: 18px;
-            font-size: 25px;
-            font-weight: 900;
-            color: #111;
-            letter-spacing: -1px;
-            cursor: pointer;
+            font-size: 24px;
+            font-weight: 800;
         }
 
-        /* ACCOUNT */
-
-        #account {
-            position: absolute;
-            right: 18px;
-            top: 8px;
-            height: 48px;
+        .account {
+            margin-left: auto;
             display: flex;
             align-items: center;
+            position: relative;
         }
 
-        #loginButton {
-            background: #5865F2;
-            color: white;
+        .loginButton {
             border: none;
+            background: #111;
+            color: white;
+            padding: 10px 16px;
             border-radius: 6px;
-            padding: 11px 16px;
-            font-size: 14px;
-            font-weight: bold;
             cursor: pointer;
+            font-weight: 700;
         }
 
-        #loginButton:hover {
-            background: #4752C4;
-        }
-
-        #profile {
+        .profile {
             display: none;
             align-items: center;
             gap: 9px;
-            padding: 5px 10px 5px 5px;
-            border-radius: 25px;
             cursor: pointer;
-            user-select: none;
         }
 
-        #profile:hover {
-            background: #e5e5e5;
-        }
-
-        #profilePic {
+        .profilePic {
             width: 38px;
             height: 38px;
             border-radius: 50%;
@@ -107,22 +79,9 @@
             background: #ddd;
         }
 
-        #profileNameContainer {
-            display: flex;
-            align-items: center;
-        }
-
-        #profileName {
-            font-size: 15px;
+        .profileName {
             font-weight: 700;
-            color: #111;
-            max-width: 160px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
-
-        /* VERIFICATION */
 
         .verified {
             position: relative;
@@ -153,54 +112,47 @@
             transform: translateY(-1px);
         }
 
-        /* PROFILE MENU */
-
-        #profileMenu {
+        .profileMenu {
             display: none;
             position: absolute;
-            top: 56px;
             right: 0;
-            width: 190px;
+            top: 52px;
+            width: 180px;
             background: white;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            border-radius: 7px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             overflow: hidden;
-            z-index: 100;
         }
 
-        #profileMenu.open {
+        .profileMenu.open {
             display: block;
         }
 
-        .profileOption {
+        .profileMenu button {
             width: 100%;
-            padding: 14px 16px;
-            background: white;
             border: none;
+            background: white;
             text-align: left;
-            font-size: 15px;
-            font-weight: 600;
+            padding: 13px;
             cursor: pointer;
+            font-size: 14px;
         }
 
-        .profileOption:hover {
-            background: #f1f1f1;
+        .profileMenu button:hover {
+            background: #f3f3f3;
         }
-
-        /* SIDEBAR */
 
         .sidebar {
             position: fixed;
             top: 64px;
             left: -280px;
             width: 280px;
-            height: calc(100vh - 64px);
-            background: #f5f5f5;
-            border-right: 1px solid #ddd;
+            bottom: 0;
+            background: #f3f3f3;
             transition: left 0.2s ease;
-            padding: 20px 0;
-            z-index: 10;
+            z-index: 900;
+            padding: 20px;
         }
 
         .sidebar.open {
@@ -209,36 +161,35 @@
 
         .sidebar a {
             display: block;
-            padding: 18px 24px;
             color: #111;
             text-decoration: none;
-            font-size: 18px;
-            font-weight: 600;
+            font-weight: 700;
+            padding: 13px 10px;
+            border-radius: 6px;
+            margin-bottom: 5px;
         }
 
         .sidebar a:hover {
-            background: #e5e5e5;
+            background: #ddd;
         }
-
-        /* PROFILE CONTENT */
 
         .profilePage {
             width: 90%;
             max-width: 1100px;
-            margin: 140px auto 80px auto;
+            margin: 140px auto 80px;
         }
 
         .profileTop {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            gap: 60px;
+            align-items: flex-start;
+            gap: 40px;
         }
 
         .identity {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 18px;
         }
 
         .bigAvatar {
@@ -254,117 +205,95 @@
             align-items: center;
         }
 
-        .identityName span.name {
+        .name {
             font-size: 32px;
-            font-weight: 900;
+            font-weight: 800;
         }
-
-        /* CHARACTER PREVIEW */
 
         .characterPreview {
             width: 260px;
             height: 260px;
-            border: 1px solid #ddd;
-            background: #f5f5f5;
+            background: #f3f3f3;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* SAME DEFAULT GRAY PREVIEW AS CUSTOMIZATION */
-
-        .characterPreview .character {
+        .character {
             width: 150px;
             height: 150px;
             background: #999;
-            border-radius: 4px;
+            border-radius: 8px;
         }
 
         .divider {
             width: 100%;
             height: 1px;
             background: #ddd;
-            margin: 50px 0 30px 0;
+            margin: 45px 0;
         }
 
         h2 {
-            font-size: 24px;
+            font-size: 22px;
             margin-bottom: 20px;
         }
 
-        /* CURRENTLY WEARING */
-
         .wearing {
-            min-height: 100px;
             display: flex;
-            align-items: flex-start;
-            color: #111;
-            font-size: 16px;
+            gap: 15px;
         }
-
-        /* SAME STYLE OF ITEM BOX AS CUSTOMIZATION */
 
         .wearingItem {
             width: 180px;
-            border: 1px solid #ddd;
-            background: #f5f5f5;
-            border-radius: 6px;
-            padding: 12px;
         }
 
         .wearingItemPreview {
-            width: 100%;
-            height: 150px;
-            background: #e5e5e5;
-            border-radius: 4px;
+            width: 180px;
+            height: 180px;
+            background: #f3f3f3;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 12px;
         }
 
-        .wearingItemPreview .grayItem {
-            width: 90px;
-            height: 90px;
+        .grayItem {
+            width: 150px;
+            height: 150px;
             background: #999;
-            border-radius: 4px;
+            border-radius: 8px;
         }
 
         .wearingItemName {
-            font-size: 16px;
+            margin-top: 10px;
             font-weight: 700;
-            color: #111;
+            text-align: center;
         }
 
-        /* BIO */
-
         .bio {
+            width: 100%;
             min-height: 80px;
-            font-size: 17px;
+            color: #333;
             line-height: 1.5;
             white-space: pre-wrap;
-            color: #333;
         }
 
         .emptyBio {
             color: #999;
-            font-style: italic;
         }
 
         @media (max-width: 700px) {
-
             .profileTop {
                 flex-direction: column;
-                align-items: flex-start;
             }
 
             .characterPreview {
                 width: 100%;
-                max-width: 260px;
             }
 
-            .profilePage {
-                margin-top: 90px;
+            .identity {
+                width: 100%;
             }
         }
     </style>
@@ -372,102 +301,72 @@
 
 <body>
 
-    <!-- TOP BAR -->
+    <header class="topbar">
+        <button class="menuButton" onclick="toggleMenu()">☰</button>
 
-    <div class="topbar">
-
-        <div class="menu" onclick="toggleMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-
-        <div class="logo" onclick="location.href='index.html'">
+        <div class="logo">
             FoxxyDen
         </div>
 
-        <div id="account">
+        <div class="account" id="account">
 
             <button
                 id="loginButton"
+                class="loginButton"
                 onclick="loginWithDiscord()"
             >
-                LOGIN WITH DISCORD
+                Login with Discord
             </button>
 
             <div
                 id="profile"
+                class="profile"
                 onclick="toggleProfileMenu()"
             >
-
                 <img
                     id="profilePic"
+                    class="profilePic"
                     src=""
                     alt="Profile picture"
                 >
 
-                <div id="profileNameContainer">
+                <span
+                    id="profileName"
+                    class="profileName"
+                >
+                    Player
+                </span>
 
-                    <span id="profileName"></span>
-
-                    <span
-                        id="verificationBadge"
-                        class="verified"
-                        style="display: none;"
-                    >
-                        <span>✓</span>
-                    </span>
-
-                </div>
-
+                <span
+                    id="verificationBadge"
+                    class="verified"
+                    style="display: none;"
+                >
+                    <span>✓</span>
+                </span>
             </div>
 
-            <div id="profileMenu">
-
-                <button
-                    class="profileOption"
-                    onclick="viewProfile(event)"
-                >
+            <div
+                id="profileMenu"
+                class="profileMenu"
+            >
+                <button onclick="viewOwnProfile(event)">
                     View Profile
                 </button>
 
-                <button
-                    class="profileOption"
-                    onclick="signOut(event)"
-                >
+                <button onclick="signOut(event)">
                     Sign Out
                 </button>
-
             </div>
 
         </div>
+    </header>
 
-    </div>
-
-
-    <!-- SIDEBAR -->
-
-    <div
-        class="sidebar"
-        id="sidebar"
-    >
-
-        <a href="shop.html">
-            Shop
-        </a>
-
-        <a href="customazition.html">
-            Customization
-        </a>
-
-        <a href="settings.html">
-            Settings
-        </a>
-
-    </div>
-
-
-    <!-- PROFILE -->
+    <aside id="sidebar" class="sidebar">
+        <a href="shop.html">Shop</a>
+        <a href="customazition.html">Customization</a>
+        <a href="settings.html">Settings</a>
+    </aside>
 
     <main class="profilePage">
 
@@ -503,7 +402,6 @@
 
             </div>
 
-
             <div
                 id="characterPreview"
                 class="characterPreview"
@@ -513,25 +411,18 @@
 
         </section>
 
-
         <div class="divider"></div>
 
-
-        <h2>
-            Currently wearing
-        </h2>
+        <h2>Currently wearing</h2>
 
         <div
             id="wearing"
             class="wearing"
         >
-
             <div class="wearingItem">
 
                 <div class="wearingItemPreview">
-
                     <div class="grayItem"></div>
-
                 </div>
 
                 <div class="wearingItemName">
@@ -539,16 +430,11 @@
                 </div>
 
             </div>
-
         </div>
-
 
         <div class="divider"></div>
 
-
-        <h2>
-            Bio
-        </h2>
+        <h2>Bio</h2>
 
         <div
             id="bio"
@@ -561,9 +447,7 @@
 
     </main>
 
-
     <script>
-
         const SUPABASE_URL =
             "https://dpcixdjggpulxlekrqqk.supabase.co";
 
@@ -579,30 +463,23 @@
             SUPABASE_KEY
         );
 
-
         let currentUser = null;
 
-
         function toggleMenu() {
-
             document
                 .getElementById("sidebar")
-                .classList.toggle("open");
+                .classList
+                .toggle("open");
         }
 
-
         async function loginWithDiscord() {
-
             const { error } =
                 await db.auth.signInWithOAuth({
-
                     provider: "discord",
-
                     options: {
                         redirectTo:
-                            "https://amberfoxterry.github.io/FoxxyDen/profile.html"
+                            "https://amberfoxterry.github.io/FoxxyDen/index.html"
                     }
-
                 });
 
             if (error) {
@@ -610,33 +487,27 @@
             }
         }
 
-
         function toggleProfileMenu() {
-
             document
                 .getElementById("profileMenu")
-                .classList.toggle("open");
+                .classList
+                .toggle("open");
         }
 
-
-        function viewProfile(event) {
-
+        function viewOwnProfile(event) {
             event.stopPropagation();
 
             window.location.href =
                 "profile.html";
         }
 
-
         async function signOut(event) {
-
             event.stopPropagation();
 
             const { error } =
                 await db.auth.signOut();
 
             if (error) {
-
                 alert(error.message);
                 return;
             }
@@ -644,7 +515,6 @@
             window.location.href =
                 "index.html";
         }
-
 
         async function loadAccount() {
 
@@ -661,12 +531,6 @@
             const metadata =
                 currentUser.user_metadata || {};
 
-
-            /*
-                Discord Display Name.
-                We intentionally do NOT use user_name.
-            */
-
             const displayName =
                 metadata.global_name ||
                 metadata.custom_claims?.global_name ||
@@ -674,126 +538,162 @@
                 metadata.name ||
                 "Player";
 
-
             const avatar =
                 metadata.avatar_url ||
                 metadata.picture ||
                 "";
 
-
             document
                 .getElementById("loginButton")
                 .style.display = "none";
-
 
             document
                 .getElementById("profile")
                 .style.display = "flex";
 
-
             document
                 .getElementById("profileName")
                 .textContent = displayName;
 
-
             if (avatar) {
-
                 document
                     .getElementById("profilePic")
                     .src = avatar;
-
-                document
-                    .getElementById("bigAvatar")
-                    .src = avatar;
             }
 
-
-            document
-                .getElementById("displayName")
-                .textContent = displayName;
-
-
-            if (VERIFIED_UIDS.includes(currentUser.id)) {
-
+            if (
+                VERIFIED_UIDS.includes(
+                    currentUser.id
+                )
+            ) {
                 document
-                    .getElementById("verificationBadge")
-                    .style.display = "inline-flex";
-
-                document
-                    .getElementById("bigVerificationBadge")
-                    .style.display = "inline-flex";
+                    .getElementById(
+                        "verificationBadge"
+                    )
+                    .style.display =
+                        "inline-flex";
             }
-
-
-            await loadProfile();
         }
 
+        async function loadUser() {
 
-        async function loadProfile() {
+            const params =
+                new URLSearchParams(
+                    window.location.search
+                );
 
-            if (!currentUser) {
+            const username =
+                params.get("user");
+
+            if (!username) {
+
+                document
+                    .getElementById("displayName")
+                    .textContent =
+                        "User not found";
+
                 return;
             }
-
 
             const { data, error } =
                 await db
                     .from("profiles")
-                    .select("bio, owned")
-                    .eq("uuid", currentUser.id)
+                    .select(
+                        "uuid, username, display_name, avatar_url, bio, owned"
+                    )
+                    .eq("username", username)
                     .single();
 
-
-            if (error) {
+            if (error || !data) {
 
                 console.error(
-                    "Could not load profile:",
+                    "Could not load user:",
                     error
                 );
+
+                document
+                    .getElementById("displayName")
+                    .textContent =
+                        "User not found";
 
                 return;
             }
 
+            const displayName =
+                data.display_name ||
+                data.username ||
+                "Player";
+
+            document
+                .getElementById("displayName")
+                .textContent =
+                    displayName;
+
+            if (data.avatar_url) {
+                document
+                    .getElementById("bigAvatar")
+                    .src =
+                        data.avatar_url;
+            }
+
+            if (
+                VERIFIED_UIDS.includes(
+                    data.uuid
+                )
+            ) {
+                document
+                    .getElementById(
+                        "bigVerificationBadge"
+                    )
+                    .style.display =
+                        "inline-flex";
+            }
 
             const bioElement =
                 document.getElementById("bio");
 
-
-            if (data.bio && data.bio.trim() !== "") {
-
+            if (
+                data.bio &&
+                data.bio.trim() !== ""
+            ) {
                 bioElement.textContent =
                     data.bio;
-
             } else {
-
                 bioElement.innerHTML =
                     '<span class="emptyBio">No bio yet.</span>';
             }
-
         }
-
 
         document.addEventListener(
             "click",
             function(event) {
 
                 const account =
-                    document.getElementById("account");
+                    document.getElementById(
+                        "account"
+                    );
 
-                if (!account.contains(event.target)) {
-
+                if (
+                    !account.contains(
+                        event.target
+                    )
+                ) {
                     document
-                        .getElementById("profileMenu")
+                        .getElementById(
+                            "profileMenu"
+                        )
                         .classList
                         .remove("open");
                 }
-
             }
         );
 
+        async function initialize() {
+            await loadAccount();
+            await loadUser();
+        }
 
-        loadAccount();
-
+        initialize();
     </script>
 
 </body>
