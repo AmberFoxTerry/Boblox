@@ -1,96 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Foxxy Hangout</title>
 
-    <title>Foxxy Hangout</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+    * {
+        box-sizing: border-box;
+    }
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+    html,
+    body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+    }
 
-        body {
-            background: #111;
-            overflow: hidden;
-            font-family: Arial, Helvetica, sans-serif;
-        }
+    body {
+        background: #181818;
+        display: flex;
+    }
 
-        canvas {
-            display: block;
-        }
+    #gameArea {
+        flex: 1;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
 
-        #chat {
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 300px;
-            height: 100vh;
-            background: #f3f3f3;
-            border-left: 1px solid #ccc;
-            display: flex;
-            flex-direction: column;
-        }
+    canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+    }
 
-        #chatMessages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-        }
+    #chat {
+        width: 300px;
+        height: 100%;
+        background: #eeeeee;
+        border-left: 1px solid #cccccc;
+        display: flex;
+        flex-direction: column;
+    }
 
-        .message {
-            margin-bottom: 12px;
-            word-wrap: break-word;
-        }
+    #chatHeader {
+        height: 55px;
+        display: flex;
+        align-items: center;
+        padding: 0 16px;
+        font-size: 20px;
+        font-weight: 800;
+        color: #111;
+        border-bottom: 1px solid #d0d0d0;
+        background: #f5f5f5;
+    }
 
-        .messageName {
-            font-size: 14px;
-            font-weight: 700;
-            color: #111;
-            margin-bottom: 3px;
-        }
+    #chatMessages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 12px;
+    }
 
-        .messageText {
-            font-size: 14px;
-            color: #333;
-        }
+    .chatMessage {
+        margin-bottom: 10px;
+        word-wrap: break-word;
+    }
 
-        #chatInputArea {
-            padding: 10px;
-            border-top: 1px solid #ccc;
-            background: white;
-        }
+    .chatName {
+        font-weight: 800;
+        color: #111;
+        margin-right: 5px;
+    }
 
-        #chatInput {
-            width: 100%;
-            height: 40px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            padding: 0 11px;
-            font-size: 14px;
-            outline: none;
-        }
+    .chatText {
+        color: #333;
+    }
 
-        #chatInput:focus {
-            border-color: #999;
-        }
-    </style>
+    #chatInputContainer {
+        padding: 10px;
+        border-top: 1px solid #d0d0d0;
+        background: #f5f5f5;
+    }
+
+    #chatInput {
+        width: 100%;
+        height: 40px;
+        padding: 0 12px;
+        border: 1px solid #c8c8c8;
+        border-radius: 6px;
+        outline: none;
+        font-size: 15px;
+        background: white;
+    }
+
+    #chatInput:focus {
+        border-color: #888;
+    }
+</style>
 </head>
 
 <body>
 
-<canvas id="game"></canvas>
+<div id="gameArea">
+    <canvas id="game"></canvas>
+</div>
 
 <div id="chat">
 
+    <div id="chatHeader">
+        Chat
+    </div>
+
     <div id="chatMessages"></div>
 
-    <div id="chatInputArea">
+    <div id="chatInputContainer">
         <input
             id="chatInput"
             type="text"
@@ -102,12 +130,7 @@
 
 </div>
 
-
 <script>
-
-/* =========================
-   SUPABASE
-========================= */
 
 const SUPABASE_URL =
     "https://dpcixdjggpulxlekrqqk.supabase.co";
@@ -115,15 +138,11 @@ const SUPABASE_URL =
 const SUPABASE_KEY =
     "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
 
-const db = supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
-
-
-/* =========================
-   CANVAS
-========================= */
+const db =
+    window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
 
 const canvas =
     document.getElementById("game");
@@ -131,70 +150,31 @@ const canvas =
 const ctx =
     canvas.getContext("2d");
 
-const CHAT_WIDTH = 300;
+const gameArea =
+    document.getElementById("gameArea");
 
-function resize() {
+const chatInput =
+    document.getElementById("chatInput");
 
-    canvas.width =
-        window.innerWidth -
-        CHAT_WIDTH;
+const chatMessages =
+    document.getElementById("chatMessages");
 
-    canvas.height =
-        window.innerHeight;
-}
+let playerName = "Player";
 
-window.addEventListener(
-    "resize",
-    resize
-);
-
-resize();
-
-
-/* =========================
-   ROOM
-========================= */
+const keys = {
+    a: false,
+    d: false,
+    space: false
+};
 
 const room = {
     width: 1100,
-    height: 600,
-
-    floorHeight: 40,
-    wallWidth: 40,
-
-    x: 0,
-    y: 0
+    height: 600
 };
 
-
-function positionRoom() {
-
-    room.x =
-        (canvas.width -
-            room.width) / 2;
-
-    room.y =
-        (canvas.height -
-            room.height) / 2;
-
-    if (room.x < 20) {
-        room.x = 20;
-    }
-
-    if (room.y < 20) {
-        room.y = 20;
-    }
-}
-
-
-/* =========================
-   PLAYER
-========================= */
-
 const player = {
-
-    x: 0,
-    y: 0,
+    x: 525,
+    y: 400,
 
     width: 50,
     height: 50,
@@ -205,49 +185,38 @@ const player = {
     speed: 5,
     jumpPower: 13,
 
+    gravity: 0.6,
+
     grounded: false,
 
-    displayName: "Player",
-
-    /* Default character */
-    color: "#999"
+    color: "#999999"
 };
 
-
-/* Put player in room */
-
-function positionPlayer() {
-
-    player.x =
-        room.x + 250;
-
-    player.y =
-        room.y +
-        room.height -
-        room.floorHeight -
-        player.height;
-}
+let roomX = 0;
+let roomY = 0;
 
 
 /* =========================
-   ACCOUNT
+   LOGIN / PLAYER NAME
 ========================= */
 
 async function loadPlayer() {
 
     const {
-        data: { session }
+        data: {
+            session
+        }
     } = await db.auth.getSession();
 
     if (!session) {
-        player.displayName = "Player";
+        playerName = "Player";
         return;
     }
 
     const metadata =
         session.user.user_metadata || {};
 
-    player.displayName =
+    playerName =
         metadata.global_name ||
         metadata.custom_claims?.global_name ||
         metadata.full_name ||
@@ -259,19 +228,129 @@ loadPlayer();
 
 
 /* =========================
-   INPUT
+   CANVAS
 ========================= */
 
-const keys = {
-    a: false,
-    d: false,
-    space: false
-};
+function resize() {
 
+    canvas.width =
+        gameArea.clientWidth;
+
+    canvas.height =
+        gameArea.clientHeight;
+
+    positionRoom();
+}
+
+function positionRoom() {
+
+    roomX =
+        (canvas.width - room.width) / 2;
+
+    roomY =
+        (canvas.height - room.height) / 2;
+}
+
+window.addEventListener(
+    "resize",
+    resize
+);
+
+resize();
+
+
+/* =========================
+   CHAT
+========================= */
+
+function addChatMessage(
+    name,
+    message
+) {
+
+    const wrapper =
+        document.createElement("div");
+
+    wrapper.className =
+        "chatMessage";
+
+    const nameElement =
+        document.createElement("span");
+
+    nameElement.className =
+        "chatName";
+
+    nameElement.textContent =
+        name + ":";
+
+    const textElement =
+        document.createElement("span");
+
+    textElement.className =
+        "chatText";
+
+    textElement.textContent =
+        " " + message;
+
+    wrapper.appendChild(
+        nameElement
+    );
+
+    wrapper.appendChild(
+        textElement
+    );
+
+    chatMessages.appendChild(
+        wrapper
+    );
+
+    chatMessages.scrollTop =
+        chatMessages.scrollHeight;
+}
+
+chatInput.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key === "Enter") {
+
+            const message =
+                chatInput.value.trim();
+
+            if (!message) {
+                return;
+            }
+
+            addChatMessage(
+                playerName,
+                message
+            );
+
+            chatInput.value = "";
+        }
+    }
+);
+
+
+/* =========================
+   INPUT
+========================= */
 
 window.addEventListener(
     "keydown",
     function(event) {
+
+        /*
+         * Completely disable movement
+         * while typing in chat.
+         */
+
+        if (
+            document.activeElement ===
+            chatInput
+        ) {
+            return;
+        }
 
         if (
             event.key === "a" ||
@@ -297,7 +376,8 @@ window.addEventListener(
                 player.velocityY =
                     -player.jumpPower;
 
-                player.grounded = false;
+                player.grounded =
+                    false;
             }
 
             keys.space = true;
@@ -306,7 +386,6 @@ window.addEventListener(
         }
     }
 );
-
 
 window.addEventListener(
     "keyup",
@@ -333,78 +412,83 @@ window.addEventListener(
 );
 
 
+/*
+ * Clear movement immediately when
+ * the player starts typing.
+ */
+
+chatInput.addEventListener(
+    "focus",
+    function() {
+
+        keys.a = false;
+        keys.d = false;
+        keys.space = false;
+
+        player.velocityX = 0;
+    }
+);
+
+
 /* =========================
-   PHYSICS
+   GAME UPDATE
 ========================= */
-
-const gravity = 0.6;
-
 
 function update() {
 
+    /*
+     * Movement
+     */
+
     player.velocityX = 0;
 
-    if (keys.a) {
-        player.velocityX =
-            -player.speed;
-    }
+    if (
+        document.activeElement !==
+        chatInput
+    ) {
 
-    if (keys.d) {
-        player.velocityX =
-            player.speed;
+        if (keys.a) {
+            player.velocityX =
+                -player.speed;
+        }
+
+        if (keys.d) {
+            player.velocityX =
+                player.speed;
+        }
     }
 
     player.x +=
         player.velocityX;
 
 
-    /* Left wall */
-
-    const leftWall =
-        room.x +
-        room.wallWidth;
-
-
-    if (player.x < leftWall) {
-        player.x = leftWall;
-    }
-
-
-    /* Right wall */
-
-    const rightWall =
-        room.x +
-        room.width -
-        room.wallWidth -
-        player.width;
-
-
-    if (player.x > rightWall) {
-        player.x = rightWall;
-    }
-
-
-    /* Gravity */
+    /*
+     * Gravity
+     */
 
     player.velocityY +=
-        gravity;
+        player.gravity;
 
     player.y +=
         player.velocityY;
 
 
-    /* Floor */
+    /*
+     * Floor
+     */
 
     const floorY =
-        room.y +
-        room.height -
-        room.floorHeight -
-        player.height;
+        room.height - 50;
 
+    if (
+        player.y +
+        player.height >=
+        floorY
+    ) {
 
-    if (player.y >= floorY) {
-
-        player.y = floorY;
+        player.y =
+            floorY -
+            player.height;
 
         player.velocityY = 0;
 
@@ -416,20 +500,28 @@ function update() {
     }
 
 
-    /* Ceiling */
+    /*
+     * Left wall
+     */
 
-    const ceilingY =
-        room.y +
-        room.wallWidth;
+    if (player.x < 0) {
+        player.x = 0;
+    }
 
 
-    if (player.y < ceilingY) {
+    /*
+     * Right wall
+     */
 
-        player.y = ceilingY;
+    if (
+        player.x +
+        player.width >
+        room.width
+    ) {
 
-        if (player.velocityY < 0) {
-            player.velocityY = 0;
-        }
+        player.x =
+            room.width -
+            player.width;
     }
 }
 
@@ -448,7 +540,9 @@ function draw() {
     );
 
 
-    /* Background */
+    /*
+     * Outside world
+     */
 
     ctx.fillStyle =
         "#181818";
@@ -461,102 +555,70 @@ function draw() {
     );
 
 
-    /* Room */
+    /*
+     * Room background
+     */
 
     ctx.fillStyle =
         "#f3f3f3";
 
     ctx.fillRect(
-        room.x,
-        room.y,
+        roomX,
+        roomY,
         room.width,
         room.height
     );
 
 
-    /* Floor */
+    /*
+     * Floor
+     */
 
     ctx.fillStyle =
         "#d0d0d0";
 
     ctx.fillRect(
-        room.x,
-        room.y +
-            room.height -
-            room.floorHeight,
+        roomX,
+        roomY +
+        room.height -
+        50,
         room.width,
-        room.floorHeight
+        50
     );
 
 
-    /* Walls */
+    /*
+     * Left wall
+     */
 
     ctx.fillStyle =
         "#c0c0c0";
 
-
-    /* Left */
-
     ctx.fillRect(
-        room.x,
-        room.y,
-        room.wallWidth,
+        roomX,
+        roomY,
+        20,
         room.height
     );
 
-
-    /* Right */
-
-    ctx.fillRect(
-        room.x +
-            room.width -
-            room.wallWidth,
-        room.y,
-        room.wallWidth,
-        room.height
-    );
-
-
-    /* Ceiling */
-
-    ctx.fillRect(
-        room.x,
-        room.y,
-        room.width,
-        room.wallWidth
-    );
-
-
-    /* =========================
-       PLAYER
-    ========================= */
-
-    ctx.fillStyle =
-        player.color;
-
-    ctx.fillRect(
-        player.x,
-        player.y,
-        player.width,
-        player.height
-    );
-
-
-    /* =========================
-       COSMETICS
-    ========================= */
 
     /*
-        Nothing equipped yet.
+     * Right wall
+     */
 
-        Future cosmetics will be
-        drawn here.
-    */
+    ctx.fillRect(
+        roomX +
+        room.width -
+        20,
+        roomY,
+        20,
+        room.height
+    );
 
 
-    /* =========================
-       DISPLAY NAME
-    ========================= */
+    /*
+     * Player name
+     */
 
     ctx.font =
         "bold 16px Arial";
@@ -564,163 +626,83 @@ function draw() {
     ctx.textAlign =
         "center";
 
-    ctx.textBaseline =
-        "bottom";
+    const nameWidth =
+        ctx.measureText(
+            playerName
+        ).width + 16;
 
+    const nameHeight =
+        24;
 
     const nameX =
+        roomX +
         player.x +
         player.width / 2;
 
-
     const nameY =
+        roomY +
         player.y -
-        8;
-
-
-    const textWidth =
-        ctx.measureText(
-            player.displayName
-        ).width;
-
-
-    /* Name background */
+        10;
 
     ctx.fillStyle =
-        "rgba(0, 0, 0, 0.65)";
+        "rgba(0,0,0,0.65)";
 
     ctx.fillRect(
         nameX -
-            textWidth / 2 -
-            6,
-        nameY - 17,
-        textWidth + 12,
-        21
+        nameWidth / 2,
+        nameY -
+        nameHeight,
+        nameWidth,
+        nameHeight
     );
-
-
-    /* Name */
 
     ctx.fillStyle =
-        "white";
+        "#ffffff";
 
     ctx.fillText(
-        player.displayName,
+        playerName,
         nameX,
-        nameY
+        nameY -
+        6
+    );
+
+
+    /*
+     * Player
+     */
+
+    ctx.fillStyle =
+        player.color;
+
+    ctx.fillRect(
+        roomX +
+        player.x,
+        roomY +
+        player.y,
+        player.width,
+        player.height
+    );
+
+
+    /*
+     * Player outline
+     */
+
+    ctx.strokeStyle =
+        "#666666";
+
+    ctx.lineWidth =
+        2;
+
+    ctx.strokeRect(
+        roomX +
+        player.x,
+        roomY +
+        player.y,
+        player.width,
+        player.height
     );
 }
-
-
-/* =========================
-   CHAT
-========================= */
-
-const chatInput =
-    document.getElementById(
-        "chatInput"
-    );
-
-const chatMessages =
-    document.getElementById(
-        "chatMessages"
-    );
-
-
-function addChatMessage(
-    name,
-    message
-) {
-
-    const container =
-        document.createElement(
-            "div"
-        );
-
-    container.className =
-        "message";
-
-
-    const nameElement =
-        document.createElement(
-            "div"
-        );
-
-    nameElement.className =
-        "messageName";
-
-    nameElement.textContent =
-        name;
-
-
-    const textElement =
-        document.createElement(
-            "div"
-        );
-
-    textElement.className =
-        "messageText";
-
-    textElement.textContent =
-        message;
-
-
-    container.appendChild(
-        nameElement
-    );
-
-    container.appendChild(
-        textElement
-    );
-
-
-    chatMessages.appendChild(
-        container
-    );
-
-
-    chatMessages.scrollTop =
-        chatMessages.scrollHeight;
-}
-
-
-chatInput.addEventListener(
-    "keydown",
-    function(event) {
-
-        if (
-            event.key !== "Enter"
-        ) {
-            return;
-        }
-
-
-        const message =
-            chatInput.value.trim();
-
-
-        if (!message) {
-            return;
-        }
-
-
-        addChatMessage(
-            player.displayName,
-            message
-        );
-
-
-        chatInput.value = "";
-    }
-);
-
-
-/* =========================
-   START
-========================= */
-
-positionRoom();
-positionPlayer();
 
 
 /* =========================
@@ -730,14 +712,12 @@ positionPlayer();
 function gameLoop() {
 
     update();
-
     draw();
 
     requestAnimationFrame(
         gameLoop
     );
 }
-
 
 gameLoop();
 
