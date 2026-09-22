@@ -298,7 +298,7 @@ const keys = {
 
 
 /* =========================
-   LOAD ACCOUNT
+   ACCOUNT
 ========================= */
 
 async function loadPlayer() {
@@ -328,228 +328,12 @@ async function loadPlayer() {
 
 
 /* =========================
-   JOIN ROOM
-========================= */
-
-async function joinAvailableRoom() {
-
-    for (
-        let i = 1;
-        i <= 100;
-        i++
-    ) {
-
-        const channelName =
-            "foxxy-hangout-room-" + i;
-
-        const channel =
-            db.channel(
-                channelName,
-                {
-                    config: {
-                        broadcast: {
-                            self: false
-                        },
-
-                        presence: {
-                            key: playerId
-                        }
-                    }
-                }
-            );
-
-        const joined =
-            await new Promise(resolve => {
-
-                let finished = false;
-
-                const timeout =
-                    setTimeout(() => {
-
-                        if (!finished) {
-
-                            finished = true;
-
-                            resolve(false);
-                        }
-
-                    }, 8000);
-
-                channel.subscribe(status => {
-
-                    console.log(
-                        "Room",
-                        i,
-                        "status:",
-                        status
-                    );
-
-                    if (
-                        status === "SUBSCRIBED" &&
-                        !finished
-                    ) {
-
-                        finished = true;
-
-                        clearTimeout(timeout);
-
-                        resolve(true);
-                    }
-
-                    if (
-                        (
-                            status === "CHANNEL_ERROR" ||
-                            status === "TIMED_OUT" ||
-                            status === "CLOSED"
-                        ) &&
-                        !finished
-                    ) {
-
-                        finished = true;
-
-                        clearTimeout(timeout);
-
-                        resolve(false);
-                    }
-
-                });
-
-            });
-
-        if (!joined) {
-
-            await db.removeChannel(
-                channel
-            );
-
-            continue;
-        }
-
-        const state =
-            channel.presenceState();
-
-        let playerCount = 0;
-
-        Object.values(state).forEach(
-            players => {
-
-                playerCount +=
-                    players.length;
-            }
-        );
-
-        console.log(
-            "Room",
-            i,
-            "players:",
-            playerCount
-        );
-
-        if (
-            playerCount < MAX_PLAYERS
-        ) {
-
-            roomChannel =
-                channel;
-
-            roomNumber =
-                i;
-
-            setupRoomEvents();
-
-            await roomChannel.track({
-                id: playerId,
-                name: playerName
-            });
-
-            roomStatus.textContent =
-                "Room " + roomNumber;
-
-            chatHeader.textContent =
-                "Chat · Room " + roomNumber;
-
-            console.log(
-                "Joined room:",
-                roomNumber
-            );
-
-            return true;
-        }
-
-        await db.removeChannel(
-            channel
-        );
-    }
-
-    roomStatus.textContent =
-        "Could not find a room.";
-
-    return false;
-}
-
-
-/* =========================
-   LOBBY PRESENCE
-========================= */
-
-async function joinLobby() {
-
-    lobbyChannel =
-        db.channel(
-            "foxxy-hangout-lobby",
-            {
-                config: {
-                    presence: {
-                        key: playerId
-                    }
-                }
-            }
-        );
-
-    lobbyChannel.subscribe(
-        async status => {
-
-            console.log(
-                "Lobby status:",
-                status
-            );
-
-            if (
-                status === "SUBSCRIBED"
-            ) {
-
-                try {
-
-                    await lobbyChannel.track({
-                        id: playerId,
-                        name: playerName,
-                        game: "foxxy-hangout"
-                    });
-
-                    console.log(
-                        "Joined Hangout lobby"
-                    );
-
-                } catch (error) {
-
-                    console.error(
-                        "Lobby presence error:",
-                        error
-                    );
-                }
-            }
-        }
-    );
-}
-
-
-/* =========================
    ROOM EVENTS
 ========================= */
 
-function setupRoomEvents() {
+function setupRoomEventsForChannel(channel) {
 
-    roomChannel
+    channel
         .on(
             "broadcast",
             {
@@ -598,6 +382,33 @@ function setupRoomEvents() {
         .on(
             "presence",
             {
+                event: "sync"
+            },
+            () => {
+
+                console.log(
+                    "Room presence synced"
+                );
+            }
+        )
+
+        .on(
+            "presence",
+            {
+                event: "join"
+            },
+            payload => {
+
+                console.log(
+                    "Player joined:",
+                    payload
+                );
+            }
+        )
+
+        .on(
+            "presence",
+            {
                 event: "leave"
             },
             payload => {
@@ -620,6 +431,242 @@ function setupRoomEvents() {
                 );
             }
         );
+}
+
+
+/* =========================
+   JOIN ROOM
+========================= */
+
+async function joinAvailableRoom() {
+
+    for (
+        let i = 1;
+        i <= 100;
+        i++
+    ) {
+
+        const channelName =
+            "foxxy-hangout-room-" + i;
+
+        const channel =
+            db.channel(
+                channelName,
+                {
+                    config: {
+                        broadcast: {
+                            self: false
+                        },
+
+                        presence: {
+                            key: playerId
+                        }
+                    }
+                }
+            );
+
+        /*
+         * IMPORTANT:
+         * All .on() handlers must be added
+         * BEFORE subscribe().
+         */
+        setupRoomEventsForChannel(
+            channel
+        );
+
+        const joined =
+            await new Promise(resolve => {
+
+                let finished = false;
+
+                const timeout =
+                    setTimeout(() => {
+
+                        if (!finished) {
+
+                            finished = true;
+
+                            resolve(false);
+                        }
+
+                    }, 8000);
+
+                channel.subscribe(
+                    status => {
+
+                        console.log(
+                            "Room",
+                            i,
+                            "status:",
+                            status
+                        );
+
+                        if (
+                            status ===
+                            "SUBSCRIBED" &&
+                            !finished
+                        ) {
+
+                            finished = true;
+
+                            clearTimeout(
+                                timeout
+                            );
+
+                            resolve(true);
+                        }
+
+                        if (
+                            (
+                                status ===
+                                "CHANNEL_ERROR" ||
+
+                                status ===
+                                "TIMED_OUT" ||
+
+                                status ===
+                                "CLOSED"
+                            ) &&
+                            !finished
+                        ) {
+
+                            finished = true;
+
+                            clearTimeout(
+                                timeout
+                            );
+
+                            resolve(false);
+                        }
+
+                    }
+                );
+
+            });
+
+        if (!joined) {
+
+            await db.removeChannel(
+                channel
+            );
+
+            continue;
+        }
+
+        const state =
+            channel.presenceState();
+
+        let playerCount = 0;
+
+        Object.values(state).forEach(
+            players => {
+
+                playerCount +=
+                    players.length;
+            }
+        );
+
+        console.log(
+            "Room",
+            i,
+            "players:",
+            playerCount
+        );
+
+        if (
+            playerCount < MAX_PLAYERS
+        ) {
+
+            roomChannel =
+                channel;
+
+            roomNumber =
+                i;
+
+            await roomChannel.track({
+                id: playerId,
+                name: playerName
+            });
+
+            roomStatus.textContent =
+                "Room " + roomNumber;
+
+            chatHeader.textContent =
+                "Chat · Room " + roomNumber;
+
+            console.log(
+                "Joined room:",
+                roomNumber
+            );
+
+            return true;
+        }
+
+        await db.removeChannel(
+            channel
+        );
+    }
+
+    roomStatus.textContent =
+        "Could not find a room.";
+
+    return false;
+}
+
+
+/* =========================
+   GLOBAL LOBBY PRESENCE
+========================= */
+
+async function joinLobby() {
+
+    lobbyChannel =
+        db.channel(
+            "foxxy-hangout-lobby",
+            {
+                config: {
+                    presence: {
+                        key: playerId
+                    }
+                }
+            }
+        );
+
+    lobbyChannel.subscribe(
+        async status => {
+
+            console.log(
+                "Lobby status:",
+                status
+            );
+
+            if (
+                status ===
+                "SUBSCRIBED"
+            ) {
+
+                try {
+
+                    await lobbyChannel.track({
+                        id: playerId,
+                        name: playerName,
+                        game: "foxxy-hangout"
+                    });
+
+                    console.log(
+                        "Joined Hangout lobby"
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        "Lobby presence error:",
+                        error
+                    );
+                }
+            }
+        }
+    );
 }
 
 
@@ -654,7 +701,9 @@ function updateRemotePlayer(data) {
         name.textContent =
             data.name || "Player";
 
-        player.appendChild(name);
+        player.appendChild(
+            name
+        );
 
         document
             .getElementById("world")
@@ -782,7 +831,8 @@ function sendChatMessage() {
         }
     });
 
-    chatInput.value = "";
+    chatInput.value =
+        "";
 }
 
 
@@ -824,7 +874,8 @@ document.addEventListener(
             event.key === "ArrowLeft"
         ) {
 
-            keys.left = true;
+            keys.left =
+                true;
         }
 
         if (
@@ -833,7 +884,8 @@ document.addEventListener(
             event.key === "ArrowRight"
         ) {
 
-            keys.right = true;
+            keys.right =
+                true;
         }
 
         if (
@@ -842,9 +894,11 @@ document.addEventListener(
 
             if (onGround) {
 
-                velocityY = 12;
+                velocityY =
+                    12;
 
-                onGround = false;
+                onGround =
+                    false;
             }
 
             event.preventDefault();
@@ -864,7 +918,8 @@ document.addEventListener(
             event.key === "ArrowLeft"
         ) {
 
-            keys.left = false;
+            keys.left =
+                false;
         }
 
         if (
@@ -873,7 +928,8 @@ document.addEventListener(
             event.key === "ArrowRight"
         ) {
 
-            keys.right = false;
+            keys.right =
+                false;
         }
 
     }
@@ -919,17 +975,22 @@ function gameLoop() {
             )
         );
 
-    velocityY -= 0.6;
+    velocityY -=
+        0.6;
 
-    y += velocityY;
+    y +=
+        velocityY;
 
     if (y <= 0) {
 
-        y = 0;
+        y =
+            0;
 
-        velocityY = 0;
+        velocityY =
+            0;
 
-        onGround = true;
+        onGround =
+            true;
     }
 
     localPlayer.style.left =
@@ -965,7 +1026,8 @@ async function leaveGame() {
             console.error(error);
         }
 
-        roomChannel = null;
+        roomChannel =
+            null;
     }
 
     if (lobbyChannel) {
@@ -981,7 +1043,8 @@ async function leaveGame() {
             console.error(error);
         }
 
-        lobbyChannel = null;
+        lobbyChannel =
+            null;
     }
 
     window.location.href =
@@ -990,7 +1053,9 @@ async function leaveGame() {
 
 
 document
-    .getElementById("leaveButton")
+    .getElementById(
+        "leaveButton"
+    )
     .addEventListener(
         "click",
         leaveGame
@@ -1013,10 +1078,11 @@ async function start() {
     }
 
     /*
-        Lobby presence is separate.
-        If it fails, the actual game
-        still works.
-    */
+     * Lobby is separate from the
+     * actual game room. If lobby
+     * presence fails, the game
+     * still continues.
+     */
     joinLobby();
 
     gameLoop();
