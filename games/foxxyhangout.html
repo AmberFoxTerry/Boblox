@@ -163,7 +163,7 @@ canvas {
 
     <div id="chatHeader">
 
-        <span>Chat</span>
+        <span id="chatTitle">Chat</span>
 
         <button
             id="leaveButton"
@@ -201,7 +201,7 @@ const SUPABASE_URL =
     "https://dpcixdjggpulxlekrqqk.supabase.co";
 
 const SUPABASE_KEY =
-    "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
+    "sb_publishable_-312NjvVe6aLDGKsmuZgQ_JfozDccs";
 
 const db =
     window.supabase.createClient(
@@ -229,6 +229,9 @@ const chatInput =
 const chatMessages =
     document.getElementById("chatMessages");
 
+const chatTitle =
+    document.getElementById("chatTitle");
+
 const leaveButton =
     document.getElementById("leaveButton");
 
@@ -252,6 +255,15 @@ const room = {
     width: 1100,
     height: 600
 };
+
+const MAX_PLAYERS =
+    4;
+
+let roomNumber =
+    null;
+
+let roomName =
+    null;
 
 
 /* =========================
@@ -310,9 +322,14 @@ let roomY = 0;
    NETWORK
 ========================= */
 
-let multiplayerChannel = null;
+let multiplayerChannel =
+    null;
 
-let leaving = false;
+let leaving =
+    false;
+
+let joiningRoom =
+    false;
 
 
 /* =========================
@@ -335,7 +352,7 @@ async function loadPlayer() {
             playerName =
                 "Player";
 
-            startMultiplayer();
+            joinAvailableRoom();
 
             return;
         }
@@ -345,10 +362,6 @@ async function loadPlayer() {
             session.user.user_metadata || {};
 
 
-        /*
-         * Discord display name
-         */
-
         playerName =
             metadata.global_name ||
             metadata.custom_claims?.global_name ||
@@ -356,11 +369,6 @@ async function loadPlayer() {
             metadata.name ||
             "Player";
 
-
-        /*
-         * Make absolutely sure
-         * the canvas uses the new name.
-         */
 
         if (
             !playerName ||
@@ -370,7 +378,7 @@ async function loadPlayer() {
         }
 
 
-        startMultiplayer();
+        joinAvailableRoom();
 
     } catch (error) {
 
@@ -382,7 +390,7 @@ async function loadPlayer() {
         playerName =
             "Player";
 
-        startMultiplayer();
+        joinAvailableRoom();
     }
 }
 
@@ -422,33 +430,288 @@ resize();
 
 
 /* =========================
-   MULTIPLAYER
+   FIND ROOM
 ========================= */
 
-function startMultiplayer() {
+async function joinAvailableRoom() {
 
-    if (leaving) {
+    if (
+        leaving ||
+        joiningRoom
+    ) {
+        return;
+    }
+
+    joiningRoom = true;
+
+
+    /*
+     * Try rooms one by one.
+     *
+     * Room 1:
+     * foxxy-hangout-room-1
+     *
+     * Room 2:
+     * foxxy-hangout-room-2
+     *
+     * etc.
+     */
+
+    for (
+        let number = 1;
+        number <= 1000;
+        number++
+    ) {
+
+        if (leaving) {
+            return;
+        }
+
+
+        const channel =
+            db.channel(
+                "foxxy-hangout-room-" + number,
+                {
+                    config: {
+
+                        broadcast: {
+                            self: false
+                        },
+
+                        presence: {
+                            key: playerId
+                        }
+
+                    }
+                }
+            );
+
+
+        /*
+         * Subscribe to the room.
+         */
+
+        const subscribed =
+            await new Promise(
+                function(resolve) {
+
+                    let finished =
+                        false;
+
+                    channel.subscribe(
+                        function(status) {
+
+                            if (finished) {
+                                return;
+                            }
+
+
+                            if (
+                                status ===
+                                "SUBSCRIBED"
+                            ) {
+
+                                finished = true;
+
+                                resolve(true);
+
+                            } else if (
+                                status ===
+                                "CHANNEL_ERROR" ||
+                                status ===
+                                "TIMED_OUT"
+                            ) {
+
+                                finished = true;
+
+                                resolve(false);
+                            }
+                        }
+                    );
+                }
+            );
+
+
+        if (!subscribed) {
+
+            try {
+
+                await db.removeChannel(
+                    channel
+                );
+
+            } catch (error) {}
+
+            continue;
+        }
+
+
+        /*
+         * Get the current players.
+         */
+
+        const presenceState =
+            channel.presenceState();
+
+        const currentPlayers =
+            countPlayers(
+                presenceState
+            );
+
+
+        /*
+         * Room is full.
+         */
+
+        if (
+            currentPlayers >=
+            MAX_PLAYERS
+        ) {
+
+            try {
+
+                await db.removeChannel(
+                    channel
+                );
+
+            } catch (error) {}
+
+            continue;
+        }
+
+
+        /*
+         * This room has space.
+         */
+
+        multiplayerChannel =
+            channel;
+
+        roomNumber =
+            number;
+
+        roomName =
+            "Room " + number;
+
+        joiningRoom =
+            false;
+
+
+        chatTitle.textContent =
+            "Chat · Room " +
+            number;
+
+
+        /*
+         * Track ourselves.
+         */
+
+        await multiplayerChannel.track({
+
+            id: playerId,
+
+            name: playerName
+
+        });
+
+
+        /*
+         * Setup events.
+         */
+
+        setupRoomEvents();
+
+
+        /*
+         * Send our first position.
+         */
+
+        sendPlayerPosition();
+
+
+        /*
+         * Show room message.
+         */
+
+        addSystemMessage(
+            "Joined Room " +
+            number +
+            " (" +
+            MAX_PLAYERS +
+            " player max)"
+        );
+
+
         return;
     }
 
 
-    multiplayerChannel =
-        db.channel(
-            "foxxy-hangout-main",
-            {
-                config: {
+    joiningRoom =
+        false;
 
-                    broadcast: {
-                        self: false
-                    },
+    addSystemMessage(
+        "Could not find an available room."
+    );
+}
 
-                    presence: {
-                        key: playerId
+
+/* =========================
+   COUNT PLAYERS
+========================= */
+
+function countPlayers(
+    presenceState
+) {
+
+    const ids =
+        new Set();
+
+
+    Object.keys(
+        presenceState || {}
+    ).forEach(
+        function(key) {
+
+            const presences =
+                presenceState[key] || [];
+
+
+            presences.forEach(
+                function(presence) {
+
+                    if (
+                        presence.id
+                    ) {
+
+                        ids.add(
+                            presence.id
+                        );
+
+                    } else {
+
+                        ids.add(key);
                     }
-
                 }
-            }
-        );
+            );
+        }
+    );
+
+
+    return ids.size;
+}
+
+
+/* =========================
+   ROOM EVENTS
+========================= */
+
+function setupRoomEvents() {
+
+    if (
+        !multiplayerChannel
+    ) {
+        return;
+    }
 
 
     /*
@@ -469,8 +732,10 @@ function startMultiplayer() {
                 return;
             }
 
+
             if (
-                data.id === playerId
+                data.id ===
+                playerId
             ) {
                 return;
             }
@@ -478,7 +743,8 @@ function startMultiplayer() {
 
             otherPlayers[data.id] = {
 
-                id: data.id,
+                id:
+                    data.id,
 
                 name:
                     data.name ||
@@ -490,9 +756,11 @@ function startMultiplayer() {
                 y:
                     Number(data.y) || 0,
 
-                width: 50,
+                width:
+                    50,
 
-                height: 50,
+                height:
+                    50,
 
                 color:
                     "#999999",
@@ -505,7 +773,7 @@ function startMultiplayer() {
 
 
     /*
-     * Player leaves
+     * Player leaves.
      */
 
     multiplayerChannel.on(
@@ -516,7 +784,8 @@ function startMultiplayer() {
         function(payload) {
 
             const left =
-                payload.leftPresences || [];
+                payload.leftPresences ||
+                [];
 
 
             left.forEach(
@@ -525,6 +794,7 @@ function startMultiplayer() {
                     const id =
                         presence.id ||
                         presence.key;
+
 
                     if (id) {
 
@@ -557,12 +827,12 @@ function startMultiplayer() {
 
 
             /*
-             * Don't show our own message
-             * twice.
+             * Ignore our own message.
              */
 
             if (
-                data.id === playerId
+                data.id ===
+                playerId
             ) {
                 return;
             }
@@ -578,35 +848,6 @@ function startMultiplayer() {
             );
         }
     );
-
-
-    /*
-     * Connect
-     */
-
-    multiplayerChannel.subscribe(
-        async function(status) {
-
-            if (
-                status !==
-                "SUBSCRIBED"
-            ) {
-                return;
-            }
-
-
-            await multiplayerChannel.track({
-
-                id: playerId,
-
-                name: playerName
-
-            });
-
-
-            sendPlayerPosition();
-        }
-    );
 }
 
 
@@ -618,7 +859,8 @@ function sendPlayerPosition() {
 
     if (
         !multiplayerChannel ||
-        leaving
+        leaving ||
+        !roomNumber
     ) {
         return;
     }
@@ -626,20 +868,25 @@ function sendPlayerPosition() {
 
     multiplayerChannel.send({
 
-        type: "broadcast",
+        type:
+            "broadcast",
 
-        event: "player_position",
+        event:
+            "player_position",
 
         payload: {
 
-            id: playerId,
+            id:
+                playerId,
 
-            name: playerName,
+            name:
+                playerName,
 
-            x: player.x,
+            x:
+                player.x,
 
-            y: player.y
-
+            y:
+                player.y
         }
 
     });
@@ -662,14 +909,18 @@ function addChatMessage(
 ) {
 
     const wrapper =
-        document.createElement("div");
+        document.createElement(
+            "div"
+        );
 
     wrapper.className =
         "chatMessage";
 
 
     const nameElement =
-        document.createElement("span");
+        document.createElement(
+            "span"
+        );
 
     nameElement.className =
         "chatName";
@@ -679,7 +930,9 @@ function addChatMessage(
 
 
     const textElement =
-        document.createElement("span");
+        document.createElement(
+            "span"
+        );
 
     textElement.className =
         "chatText";
@@ -694,6 +947,52 @@ function addChatMessage(
 
     wrapper.appendChild(
         textElement
+    );
+
+
+    chatMessages.appendChild(
+        wrapper
+    );
+
+
+    chatMessages.scrollTop =
+        chatMessages.scrollHeight;
+}
+
+
+function addSystemMessage(
+    message
+) {
+
+    const wrapper =
+        document.createElement(
+            "div"
+        );
+
+    wrapper.className =
+        "chatMessage";
+
+
+    const text =
+        document.createElement(
+            "span"
+        );
+
+    text.className =
+        "chatText";
+
+    text.style.color =
+        "#777";
+
+    text.style.fontStyle =
+        "italic";
+
+    text.textContent =
+        message;
+
+
+    wrapper.appendChild(
+        text
     );
 
 
@@ -729,7 +1028,7 @@ chatInput.addEventListener(
 
 
         /*
-         * Show own message
+         * Show our own message.
          */
 
         addChatMessage(
@@ -739,26 +1038,33 @@ chatInput.addEventListener(
 
 
         /*
-         * Send to everyone else
+         * Send to everyone
+         * in our room.
          */
 
         if (
-            multiplayerChannel
+            multiplayerChannel &&
+            roomNumber
         ) {
 
             multiplayerChannel.send({
 
-                type: "broadcast",
+                type:
+                    "broadcast",
 
-                event: "chat",
+                event:
+                    "chat",
 
                 payload: {
 
-                    id: playerId,
+                    id:
+                        playerId,
 
-                    name: playerName,
+                    name:
+                        playerName,
 
-                    message: message
+                    message:
+                        message
 
                 }
 
@@ -766,7 +1072,8 @@ chatInput.addEventListener(
         }
 
 
-        chatInput.value = "";
+        chatInput.value =
+            "";
     }
 );
 
@@ -780,8 +1087,8 @@ window.addEventListener(
     function(event) {
 
         /*
-         * Disable movement while
-         * typing in chat.
+         * Disable movement
+         * while typing.
          */
 
         if (
@@ -811,7 +1118,8 @@ window.addEventListener(
 
 
         if (
-            event.code === "Space"
+            event.code ===
+            "Space"
         ) {
 
             if (
@@ -827,7 +1135,8 @@ window.addEventListener(
             }
 
 
-            keys.space = true;
+            keys.space =
+                true;
 
             event.preventDefault();
         }
@@ -844,7 +1153,8 @@ window.addEventListener(
             event.key === "A"
         ) {
 
-            keys.a = false;
+            keys.a =
+                false;
         }
 
 
@@ -853,34 +1163,43 @@ window.addEventListener(
             event.key === "D"
         ) {
 
-            keys.d = false;
+            keys.d =
+                false;
         }
 
 
         if (
-            event.code === "Space"
+            event.code ===
+            "Space"
         ) {
 
-            keys.space = false;
+            keys.space =
+                false;
         }
     }
 );
 
 
 /*
- * Clear movement when chat
- * receives focus.
+ * Clear movement when
+ * chat receives focus.
  */
 
 chatInput.addEventListener(
     "focus",
     function() {
 
-        keys.a = false;
-        keys.d = false;
-        keys.space = false;
+        keys.a =
+            false;
 
-        player.velocityX = 0;
+        keys.d =
+            false;
+
+        keys.space =
+            false;
+
+        player.velocityX =
+            0;
     }
 );
 
@@ -897,21 +1216,20 @@ leaveButton.addEventListener(
             return;
         }
 
-        leaving = true;
+
+        leaving =
+            true;
 
 
-        /*
-         * Stop movement.
-         */
+        keys.a =
+            false;
 
-        keys.a = false;
-        keys.d = false;
-        keys.space = false;
+        keys.d =
+            false;
 
+        keys.space =
+            false;
 
-        /*
-         * Disconnect from room.
-         */
 
         if (
             multiplayerChannel
@@ -932,14 +1250,11 @@ leaveButton.addEventListener(
                 );
             }
 
+
             multiplayerChannel =
                 null;
         }
 
-
-        /*
-         * Return to FoxxyDen.
-         */
 
         window.location.href =
             "../index.html";
@@ -953,11 +1268,8 @@ leaveButton.addEventListener(
 
 function update() {
 
-    /*
-     * Horizontal movement
-     */
-
-    player.velocityX = 0;
+    player.velocityX =
+        0;
 
 
     if (
@@ -1034,7 +1346,8 @@ function update() {
         player.x < 20
     ) {
 
-        player.x = 20;
+        player.x =
+            20;
     }
 
 
@@ -1344,15 +1657,23 @@ function draw() {
     drawPlayer(
 
         {
-            x: player.x,
-            y: player.y,
+            x:
+                player.x,
 
-            width: player.width,
-            height: player.height,
+            y:
+                player.y,
 
-            color: player.color,
+            width:
+                player.width,
 
-            name: playerName
+            height:
+                player.height,
+
+            color:
+                player.color,
+
+            name:
+                playerName
         },
 
         roomX,
