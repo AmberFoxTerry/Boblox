@@ -188,9 +188,14 @@ html, body {
 <div id="game">
 
     <div id="world">
-        <button id="leaveButton">Leave</button>
 
-        <div id="roomStatus">Joining room...</div>
+        <button id="leaveButton">
+            Leave
+        </button>
+
+        <div id="roomStatus">
+            Joining room...
+        </div>
 
         <div id="floor"></div>
 
@@ -198,11 +203,15 @@ html, body {
         <div id="rightWall" class="wall"></div>
 
         <div id="localPlayer" class="player">
-            <div id="localPlayerName" class="playerName">Player</div>
+            <div id="localPlayerName" class="playerName">
+                Player
+            </div>
         </div>
+
     </div>
 
     <div id="chat">
+
         <div id="chatHeader">
             Chat
         </div>
@@ -210,6 +219,7 @@ html, body {
         <div id="messages"></div>
 
         <div id="chatInputContainer">
+
             <input
                 id="chatInput"
                 type="text"
@@ -217,37 +227,61 @@ html, body {
                 maxlength="300"
                 autocomplete="off"
             >
+
         </div>
+
     </div>
 
 </div>
 
 <script>
-const SUPABASE_URL = "https://dpcixdjggpulxlekrqqk.supabase.co";
+
+const SUPABASE_URL =
+    "https://dpcixdjggpulxlekrqqk.supabase.co";
 
 const SUPABASE_KEY =
     "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
 
-const db = supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
+const db =
+    supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY
+    );
 
 const MAX_PLAYERS = 4;
 
-const localPlayer = document.getElementById("localPlayer");
-const localPlayerName = document.getElementById("localPlayerName");
-const messages = document.getElementById("messages");
-const chatInput = document.getElementById("chatInput");
-const chatHeader = document.getElementById("chatHeader");
-const roomStatus = document.getElementById("roomStatus");
+const localPlayer =
+    document.getElementById("localPlayer");
 
-let playerId = crypto.randomUUID();
-let playerName = "Player";
+const localPlayerName =
+    document.getElementById("localPlayerName");
 
-let roomNumber = null;
-let roomChannel = null;
-let lobbyChannel = null;
+const messages =
+    document.getElementById("messages");
+
+const chatInput =
+    document.getElementById("chatInput");
+
+const chatHeader =
+    document.getElementById("chatHeader");
+
+const roomStatus =
+    document.getElementById("roomStatus");
+
+let playerId =
+    crypto.randomUUID();
+
+let playerName =
+    "Player";
+
+let roomNumber =
+    null;
+
+let roomChannel =
+    null;
+
+let lobbyChannel =
+    null;
 
 let x = 300;
 let y = 0;
@@ -255,27 +289,30 @@ let y = 0;
 let velocityY = 0;
 let onGround = true;
 
+let lastBroadcast = 0;
+
 const keys = {
     left: false,
     right: false
 };
 
-let lastBroadcast = 0;
-
 
 /* =========================
-   ACCOUNT
+   LOAD ACCOUNT
 ========================= */
 
 async function loadPlayer() {
+
     const {
-        data: { session }
+        data: {
+            session
+        }
     } = await db.auth.getSession();
 
-    if (!session) {
-        playerName = "Player";
-    } else {
-        const metadata = session.user.user_metadata || {};
+    if (session) {
+
+        const metadata =
+            session.user.user_metadata || {};
 
         playerName =
             metadata.global_name ||
@@ -285,92 +322,138 @@ async function loadPlayer() {
             "Player";
     }
 
-    localPlayerName.textContent = playerName;
+    localPlayerName.textContent =
+        playerName;
 }
 
 
 /* =========================
-   LOBBY PRESENCE
-========================= */
-
-async function joinLobby() {
-
-    lobbyChannel = db.channel(
-        "foxxy-hangout-lobby",
-        {
-            config: {
-                presence: {
-                    key: playerId
-                }
-            }
-        }
-    );
-
-    lobbyChannel.subscribe(async status => {
-
-        if (status === "SUBSCRIBED") {
-
-            await lobbyChannel.track({
-                id: playerId,
-                name: playerName,
-                game: "foxxy-hangout"
-            });
-
-        }
-
-    });
-}
-
-
-/* =========================
-   ROOM JOINING
+   JOIN ROOM
 ========================= */
 
 async function joinAvailableRoom() {
 
-    for (let i = 1; i <= 100; i++) {
+    for (
+        let i = 1;
+        i <= 100;
+        i++
+    ) {
 
-        const channel = db.channel(
-            "foxxy-hangout-room-" + i,
-            {
-                config: {
-                    broadcast: {
-                        self: false
-                    },
+        const channelName =
+            "foxxy-hangout-room-" + i;
 
-                    presence: {
-                        key: playerId
+        const channel =
+            db.channel(
+                channelName,
+                {
+                    config: {
+                        broadcast: {
+                            self: false
+                        },
+
+                        presence: {
+                            key: playerId
+                        }
                     }
                 }
-            }
-        );
+            );
 
-        await new Promise(resolve => {
+        const joined =
+            await new Promise(resolve => {
 
-            channel.subscribe(status => {
+                let finished = false;
 
-                if (status === "SUBSCRIBED") {
-                    resolve();
-                }
+                const timeout =
+                    setTimeout(() => {
+
+                        if (!finished) {
+
+                            finished = true;
+
+                            resolve(false);
+                        }
+
+                    }, 8000);
+
+                channel.subscribe(status => {
+
+                    console.log(
+                        "Room",
+                        i,
+                        "status:",
+                        status
+                    );
+
+                    if (
+                        status === "SUBSCRIBED" &&
+                        !finished
+                    ) {
+
+                        finished = true;
+
+                        clearTimeout(timeout);
+
+                        resolve(true);
+                    }
+
+                    if (
+                        (
+                            status === "CHANNEL_ERROR" ||
+                            status === "TIMED_OUT" ||
+                            status === "CLOSED"
+                        ) &&
+                        !finished
+                    ) {
+
+                        finished = true;
+
+                        clearTimeout(timeout);
+
+                        resolve(false);
+                    }
+
+                });
 
             });
 
-        });
+        if (!joined) {
 
-        const state = channel.presenceState();
+            await db.removeChannel(
+                channel
+            );
+
+            continue;
+        }
+
+        const state =
+            channel.presenceState();
 
         let playerCount = 0;
 
-        Object.values(state).forEach(players => {
+        Object.values(state).forEach(
+            players => {
 
-            playerCount += players.length;
+                playerCount +=
+                    players.length;
+            }
+        );
 
-        });
+        console.log(
+            "Room",
+            i,
+            "players:",
+            playerCount
+        );
 
-        if (playerCount < MAX_PLAYERS) {
+        if (
+            playerCount < MAX_PLAYERS
+        ) {
 
-            roomChannel = channel;
-            roomNumber = i;
+            roomChannel =
+                channel;
+
+            roomNumber =
+                i;
 
             setupRoomEvents();
 
@@ -385,15 +468,78 @@ async function joinAvailableRoom() {
             chatHeader.textContent =
                 "Chat · Room " + roomNumber;
 
-            return;
+            console.log(
+                "Joined room:",
+                roomNumber
+            );
 
+            return true;
         }
 
-        await db.removeChannel(channel);
+        await db.removeChannel(
+            channel
+        );
     }
 
     roomStatus.textContent =
-        "No available rooms.";
+        "Could not find a room.";
+
+    return false;
+}
+
+
+/* =========================
+   LOBBY PRESENCE
+========================= */
+
+async function joinLobby() {
+
+    lobbyChannel =
+        db.channel(
+            "foxxy-hangout-lobby",
+            {
+                config: {
+                    presence: {
+                        key: playerId
+                    }
+                }
+            }
+        );
+
+    lobbyChannel.subscribe(
+        async status => {
+
+            console.log(
+                "Lobby status:",
+                status
+            );
+
+            if (
+                status === "SUBSCRIBED"
+            ) {
+
+                try {
+
+                    await lobbyChannel.track({
+                        id: playerId,
+                        name: playerName,
+                        game: "foxxy-hangout"
+                    });
+
+                    console.log(
+                        "Joined Hangout lobby"
+                    );
+
+                } catch (error) {
+
+                    console.error(
+                        "Lobby presence error:",
+                        error
+                    );
+                }
+            }
+        }
+    );
 }
 
 
@@ -411,9 +557,13 @@ function setupRoomEvents() {
             },
             payload => {
 
-                const data = payload.payload;
+                const data =
+                    payload.payload;
 
-                if (!data || data.id === playerId) {
+                if (
+                    !data ||
+                    data.id === playerId
+                ) {
                     return;
                 }
 
@@ -428,9 +578,13 @@ function setupRoomEvents() {
             },
             payload => {
 
-                const data = payload.payload;
+                const data =
+                    payload.payload;
 
-                if (!data || data.id === playerId) {
+                if (
+                    !data ||
+                    data.id === playerId
+                ) {
                     return;
                 }
 
@@ -448,21 +602,22 @@ function setupRoomEvents() {
             },
             payload => {
 
-                const leftIds =
-                    Object.keys(payload.leftPresences || {});
+                const left =
+                    payload.leftPresences || {};
 
-                leftIds.forEach(id => {
+                Object.keys(left).forEach(
+                    id => {
 
-                    const element =
-                        document.getElementById(
-                            "player-" + id
-                        );
+                        const player =
+                            document.getElementById(
+                                "player-" + id
+                            );
 
-                    if (element) {
-                        element.remove();
+                        if (player) {
+                            player.remove();
+                        }
                     }
-
-                });
+                );
             }
         );
 }
@@ -481,7 +636,8 @@ function updateRemotePlayer(data) {
 
     if (!player) {
 
-        player = document.createElement("div");
+        player =
+            document.createElement("div");
 
         player.id =
             "player-" + data.id;
@@ -514,18 +670,22 @@ function updateRemotePlayer(data) {
 
 
 /* =========================
-   POSITION BROADCAST
+   POSITION
 ========================= */
 
 function broadcastPosition() {
 
-    const now = Date.now();
+    const now =
+        Date.now();
 
-    if (now - lastBroadcast < 50) {
+    if (
+        now - lastBroadcast < 50
+    ) {
         return;
     }
 
-    lastBroadcast = now;
+    lastBroadcast =
+        now;
 
     if (!roomChannel) {
         return;
@@ -533,7 +693,9 @@ function broadcastPosition() {
 
     roomChannel.send({
         type: "broadcast",
+
         event: "position",
+
         payload: {
             id: playerId,
             name: playerName,
@@ -548,7 +710,10 @@ function broadcastPosition() {
    CHAT
 ========================= */
 
-function addMessage(name, message) {
+function addMessage(
+    name,
+    message
+) {
 
     const wrapper =
         document.createElement("div");
@@ -571,10 +736,17 @@ function addMessage(name, message) {
     messageElement.textContent =
         " " + message;
 
-    wrapper.appendChild(nameElement);
-    wrapper.appendChild(messageElement);
+    wrapper.appendChild(
+        nameElement
+    );
 
-    messages.appendChild(wrapper);
+    wrapper.appendChild(
+        messageElement
+    );
+
+    messages.appendChild(
+        wrapper
+    );
 
     messages.scrollTop =
         messages.scrollHeight;
@@ -586,7 +758,10 @@ function sendChatMessage() {
     const message =
         chatInput.value.trim();
 
-    if (!message || !roomChannel) {
+    if (
+        !message ||
+        !roomChannel
+    ) {
         return;
     }
 
@@ -597,7 +772,9 @@ function sendChatMessage() {
 
     roomChannel.send({
         type: "broadcast",
+
         event: "chat",
+
         payload: {
             id: playerId,
             name: playerName,
@@ -613,7 +790,9 @@ chatInput.addEventListener(
     "keydown",
     event => {
 
-        if (event.key === "Enter") {
+        if (
+            event.key === "Enter"
+        ) {
 
             event.preventDefault();
 
@@ -633,7 +812,8 @@ document.addEventListener(
     event => {
 
         if (
-            document.activeElement === chatInput
+            document.activeElement ===
+            chatInput
         ) {
             return;
         }
@@ -643,6 +823,7 @@ document.addEventListener(
             event.key === "A" ||
             event.key === "ArrowLeft"
         ) {
+
             keys.left = true;
         }
 
@@ -651,6 +832,7 @@ document.addEventListener(
             event.key === "D" ||
             event.key === "ArrowRight"
         ) {
+
             keys.right = true;
         }
 
@@ -661,6 +843,7 @@ document.addEventListener(
             if (onGround) {
 
                 velocityY = 12;
+
                 onGround = false;
             }
 
@@ -680,6 +863,7 @@ document.addEventListener(
             event.key === "A" ||
             event.key === "ArrowLeft"
         ) {
+
             keys.left = false;
         }
 
@@ -688,6 +872,7 @@ document.addEventListener(
             event.key === "D" ||
             event.key === "ArrowRight"
         ) {
+
             keys.right = false;
         }
 
@@ -702,12 +887,19 @@ document.addEventListener(
 function gameLoop() {
 
     const world =
-        document.getElementById("world");
+        document.getElementById(
+            "world"
+        );
 
     const maxX =
-        world.clientWidth - 25 - 21;
+        world.clientWidth -
+        25 -
+        21;
 
-    if (document.activeElement !== chatInput) {
+    if (
+        document.activeElement !==
+        chatInput
+    ) {
 
         if (keys.left) {
             x -= 5;
@@ -716,13 +908,16 @@ function gameLoop() {
         if (keys.right) {
             x += 5;
         }
-
     }
 
-    x = Math.max(
-        25 + 21,
-        Math.min(maxX, x)
-    );
+    x =
+        Math.max(
+            25 + 21,
+            Math.min(
+                maxX,
+                x
+            )
+        );
 
     velocityY -= 0.6;
 
@@ -731,7 +926,9 @@ function gameLoop() {
     if (y <= 0) {
 
         y = 0;
+
         velocityY = 0;
+
         onGround = true;
     }
 
@@ -743,7 +940,9 @@ function gameLoop() {
 
     broadcastPosition();
 
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(
+        gameLoop
+    );
 }
 
 
@@ -751,41 +950,50 @@ function gameLoop() {
    LEAVE
 ========================= */
 
+async function leaveGame() {
+
+    if (roomChannel) {
+
+        try {
+
+            await db.removeChannel(
+                roomChannel
+            );
+
+        } catch (error) {
+
+            console.error(error);
+        }
+
+        roomChannel = null;
+    }
+
+    if (lobbyChannel) {
+
+        try {
+
+            await db.removeChannel(
+                lobbyChannel
+            );
+
+        } catch (error) {
+
+            console.error(error);
+        }
+
+        lobbyChannel = null;
+    }
+
+    window.location.href =
+        "../index.html";
+}
+
+
 document
     .getElementById("leaveButton")
     .addEventListener(
         "click",
-        async () => {
-
-            if (roomChannel) {
-
-                try {
-                    await db.removeChannel(
-                        roomChannel
-                    );
-                } catch (error) {
-                    console.error(error);
-                }
-
-                roomChannel = null;
-            }
-
-            if (lobbyChannel) {
-
-                try {
-                    await db.removeChannel(
-                        lobbyChannel
-                    );
-                } catch (error) {
-                    console.error(error);
-                }
-
-                lobbyChannel = null;
-            }
-
-            window.location.href =
-                "../index.html";
-        }
+        leaveGame
     );
 
 
@@ -797,9 +1005,19 @@ async function start() {
 
     await loadPlayer();
 
-    await joinAvailableRoom();
+    const joined =
+        await joinAvailableRoom();
 
-    await joinLobby();
+    if (!joined) {
+        return;
+    }
+
+    /*
+        Lobby presence is separate.
+        If it fails, the actual game
+        still works.
+    */
+    joinLobby();
 
     gameLoop();
 }
