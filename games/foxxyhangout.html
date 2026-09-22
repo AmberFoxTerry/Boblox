@@ -6,6 +6,8 @@
 
     <title>Foxxy Hangout</title>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
     <style>
         * {
             box-sizing: border-box;
@@ -35,12 +37,37 @@
 const canvas = document.getElementById("game");
 const ctx = canvas.getContext("2d");
 
+
+/* =========================
+   SUPABASE
+========================= */
+
+const SUPABASE_URL =
+    "https://dpcixdjggpulxlekrqqk.supabase.co";
+
+const SUPABASE_KEY =
+    "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
+
+const db = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+/* =========================
+   CANVAS
+========================= */
+
 function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 }
 
-window.addEventListener("resize", resize);
+window.addEventListener(
+    "resize",
+    resize
+);
+
 resize();
 
 
@@ -85,10 +112,37 @@ const player = {
 
 
 /* =========================
-   PHYSICS
+   LOAD ACCOUNT
 ========================= */
 
-const gravity = 0.6;
+async function loadPlayer() {
+
+    const {
+        data: { session }
+    } = await db.auth.getSession();
+
+    if (!session) {
+        player.displayName = "Player";
+        return;
+    }
+
+    const metadata =
+        session.user.user_metadata || {};
+
+    player.displayName =
+        metadata.global_name ||
+        metadata.custom_claims?.global_name ||
+        metadata.full_name ||
+        metadata.name ||
+        "Player";
+}
+
+loadPlayer();
+
+
+/* =========================
+   INPUT
+========================= */
 
 const keys = {
     a: false,
@@ -96,71 +150,116 @@ const keys = {
     space: false
 };
 
-window.addEventListener("keydown", function(event) {
 
-    if (event.key === "a" || event.key === "A") {
-        keys.a = true;
-    }
+window.addEventListener(
+    "keydown",
+    function(event) {
 
-    if (event.key === "d" || event.key === "D") {
-        keys.d = true;
-    }
-
-    if (event.code === "Space") {
-
-        if (!keys.space && player.grounded) {
-            player.velocityY = -player.jumpPower;
-            player.grounded = false;
+        if (
+            event.key === "a" ||
+            event.key === "A"
+        ) {
+            keys.a = true;
         }
 
-        keys.space = true;
-        event.preventDefault();
+
+        if (
+            event.key === "d" ||
+            event.key === "D"
+        ) {
+            keys.d = true;
+        }
+
+
+        if (event.code === "Space") {
+
+            if (
+                !keys.space &&
+                player.grounded
+            ) {
+
+                player.velocityY =
+                    -player.jumpPower;
+
+                player.grounded = false;
+            }
+
+            keys.space = true;
+
+            event.preventDefault();
+        }
     }
-});
+);
 
 
-window.addEventListener("keyup", function(event) {
+window.addEventListener(
+    "keyup",
+    function(event) {
 
-    if (event.key === "a" || event.key === "A") {
-        keys.a = false;
+        if (
+            event.key === "a" ||
+            event.key === "A"
+        ) {
+            keys.a = false;
+        }
+
+
+        if (
+            event.key === "d" ||
+            event.key === "D"
+        ) {
+            keys.d = false;
+        }
+
+
+        if (event.code === "Space") {
+            keys.space = false;
+        }
     }
-
-    if (event.key === "d" || event.key === "D") {
-        keys.d = false;
-    }
-
-    if (event.code === "Space") {
-        keys.space = false;
-    }
-});
+);
 
 
 /* =========================
-   UPDATE
+   PHYSICS
 ========================= */
+
+const gravity = 0.6;
+
 
 function update() {
 
+    /* Horizontal movement */
+
     player.velocityX = 0;
 
+
     if (keys.a) {
-        player.velocityX = -player.speed;
+        player.velocityX =
+            -player.speed;
     }
+
 
     if (keys.d) {
-        player.velocityX = player.speed;
+        player.velocityX =
+            player.speed;
     }
 
+
     player.x += player.velocityX;
+
 
     /* Left wall */
 
     const leftWall =
-        room.x + room.wallWidth;
+        room.x +
+        room.wallWidth;
+
 
     if (player.x < leftWall) {
+
         player.x = leftWall;
     }
+
 
     /* Right wall */
 
@@ -170,7 +269,9 @@ function update() {
         room.wallWidth -
         player.width;
 
+
     if (player.x > rightWall) {
+
         player.x = rightWall;
     }
 
@@ -190,11 +291,13 @@ function update() {
         room.floorHeight -
         player.height;
 
+
     if (player.y >= floorY) {
 
         player.y = floorY;
 
         player.velocityY = 0;
+
         player.grounded = true;
 
     } else {
@@ -206,7 +309,9 @@ function update() {
     /* Ceiling */
 
     const ceilingY =
-        room.y + room.wallWidth;
+        room.y +
+        room.wallWidth;
+
 
     if (player.y < ceilingY) {
 
@@ -307,7 +412,8 @@ function draw() {
 
     /* Player */
 
-    ctx.fillStyle = player.color;
+    ctx.fillStyle =
+        player.color;
 
     ctx.fillRect(
         player.x,
@@ -317,34 +423,48 @@ function draw() {
     );
 
 
-    /* Cosmetic placeholder */
+    /* =========================
+       COSMETICS
+    ========================= */
 
     // Nothing equipped yet.
-    // Cosmetics can be drawn here later.
+    // Cosmetic layers will be drawn here later.
 
 
-    /* Display name */
+    /* =========================
+       DISPLAY NAME
+    ========================= */
 
-    ctx.font = "bold 16px Arial";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "bottom";
+    ctx.font =
+        "bold 16px Arial";
+
+    ctx.textAlign =
+        "center";
+
+    ctx.textBaseline =
+        "bottom";
+
 
     const nameX =
         player.x +
         player.width / 2;
 
+
     const nameY =
         player.y - 8;
 
-    /* Name background */
 
     const textWidth =
         ctx.measureText(
             player.displayName
         ).width;
 
+
+    /* Name background */
+
     ctx.fillStyle =
         "rgba(0, 0, 0, 0.65)";
+
 
     ctx.fillRect(
         nameX -
@@ -358,7 +478,9 @@ function draw() {
 
     /* Name */
 
-    ctx.fillStyle = "white";
+    ctx.fillStyle =
+        "white";
+
 
     ctx.fillText(
         player.displayName,
@@ -375,12 +497,14 @@ function draw() {
 function gameLoop() {
 
     update();
+
     draw();
 
     requestAnimationFrame(
         gameLoop
     );
 }
+
 
 gameLoop();
 </script>
