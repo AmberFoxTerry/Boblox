@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FoxxyDen - Customazition</title>
+    <title>FoxxyDen - Customization</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         * {
@@ -146,11 +148,54 @@
             background: #d3d3d3;
         }
 
+        .red {
+            background: red;
+        }
+
+        .green {
+            background: green;
+        }
+
+        .blue {
+            background: blue;
+        }
+
         .creator {
             font-size: 14px;
             color: #666;
             font-weight: normal;
             margin-top: 3px;
+            display: flex;
+            align-items: center;
+        }
+
+        .verified {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            margin-left: 5px;
+            flex-shrink: 0;
+        }
+
+        .verified::before {
+            content: "♥";
+            position: absolute;
+            color: #ff69b4;
+            font-size: 20px;
+            line-height: 20px;
+        }
+
+        .verified span {
+            position: relative;
+            z-index: 1;
+            color: white;
+            font-size: 9px;
+            font-weight: 900;
+            line-height: 1;
+            transform: translateY(-1px);
         }
 
         button {
@@ -169,6 +214,16 @@
 
         button.equipped {
             background: #555;
+            cursor: default;
+        }
+
+        button.equip {
+            background: #32CD32;
+            color: #111;
+        }
+
+        button.equip:hover {
+            background: #28b828;
         }
     </style>
 </head>
@@ -237,11 +292,130 @@
 
     <script>
 
+        const SUPABASE_URL =
+            "https://dpcixdjggpulxlekrqqk.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
+
+        const db = supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+
+        const colorItems = [
+            {
+                id: "red",
+                name: "Red",
+                className: "red",
+                color: "red"
+            },
+            {
+                id: "green",
+                name: "Green",
+                className: "green",
+                color: "green"
+            },
+            {
+                id: "blue",
+                name: "Blue",
+                className: "blue",
+                color: "blue"
+            }
+        ];
+
+
+        let session = null;
+        let owned = [];
+
+
         function toggleMenu() {
 
             document
                 .getElementById("sidebar")
                 .classList.toggle("open");
+
+        }
+
+
+        function verificationBadge() {
+
+            return `
+                <span class="verified">
+                    <span>✓</span>
+                </span>
+            `;
+
+        }
+
+
+        function getEquipped() {
+
+            return localStorage.getItem(
+                "foxxyden_equipped"
+            ) || "gray";
+
+        }
+
+
+        function updatePreview() {
+
+            const player =
+                document.getElementById("player");
+
+            const equipped =
+                getEquipped();
+
+
+            if (equipped === "gray") {
+
+                player.style.background =
+                    "#d3d3d3";
+
+                player.style.borderColor =
+                    "#aaa";
+
+            } else {
+
+                const item =
+                    colorItems.find(
+                        function(color) {
+                            return color.id === equipped;
+                        }
+                    );
+
+
+                if (item) {
+
+                    player.style.background =
+                        item.color;
+
+                    player.style.borderColor =
+                        item.color;
+
+                }
+
+            }
+
+        }
+
+
+        function equipColor(colorId) {
+
+            if (!owned.includes(colorId)) {
+                return;
+            }
+
+
+            localStorage.setItem(
+                "foxxyden_equipped",
+                colorId
+            );
+
+
+            renderCustomization();
+            updatePreview();
 
         }
 
@@ -253,50 +427,94 @@
                 "gray"
             );
 
+
+            renderCustomization();
             updatePreview();
 
         }
 
 
-        function updatePreview() {
-
-            const player =
-                document.getElementById("player");
-
-            player.style.background =
-                "#d3d3d3";
-
-
-            const button =
-                document.getElementById("grayButton");
-
-            button.classList.add("equipped");
-
-            button.textContent =
-                "Equipped";
-
-        }
-
-
-        function loadCustomization() {
+        function renderCustomization() {
 
             const container =
                 document.getElementById("colors");
 
-            container.innerHTML = `
+            container.innerHTML = "";
 
-                <div class="color">
+
+            const equipped =
+                getEquipped();
+
+
+            const defaultColor =
+                document.createElement("div");
+
+            defaultColor.className =
+                "color";
+
+
+            defaultColor.innerHTML = `
+
+                <div class="color-info">
+
+                    <div class="dot gray"></div>
+
+                    <div>
+
+                        Default Gray
+
+                        <div class="creator">
+                            FoxxyDen Default
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <button
+                    class="${equipped === "gray" ? "equipped" : "equip"}"
+                    onclick="equipGray()"
+                >
+                    ${equipped === "gray" ? "Equipped" : "Equip"}
+                </button>
+
+            `;
+
+
+            container.appendChild(defaultColor);
+
+
+            colorItems.forEach(function(item) {
+
+                if (!owned.includes(item.id)) {
+                    return;
+                }
+
+
+                const element =
+                    document.createElement("div");
+
+                element.className =
+                    "color";
+
+
+                const isEquipped =
+                    equipped === item.id;
+
+
+                element.innerHTML = `
 
                     <div class="color-info">
 
-                        <div class="dot gray"></div>
+                        <div class="dot ${item.className}"></div>
 
                         <div>
 
-                            Default Gray
+                            ${item.name}
 
                             <div class="creator">
-                                FoxxyDen Default
+                                Creator: Terry
+                                ${verificationBadge()}
                             </div>
 
                         </div>
@@ -304,16 +522,71 @@
                     </div>
 
                     <button
-                        id="grayButton"
-                        onclick="equipGray()"
+                        class="${isEquipped ? "equipped" : "equip"}"
+                        ${isEquipped ? "disabled" : ""}
+                        onclick="equipColor('${item.id}')"
                     >
-                        Equipped
+                        ${isEquipped ? "Equipped" : "Equip"}
                     </button>
 
-                </div>
+                `;
 
-            `;
 
+                container.appendChild(element);
+
+            });
+
+        }
+
+
+        async function loadCustomization() {
+
+            const {
+                data: { session: currentSession }
+            } = await db.auth.getSession();
+
+
+            session = currentSession;
+
+
+            if (!session) {
+
+                owned = [];
+                renderCustomization();
+                updatePreview();
+                return;
+
+            }
+
+
+            const { data, error } =
+                await db
+                    .from("profiles")
+                    .select("owned")
+                    .eq("uuid", session.user.id)
+                    .single();
+
+
+            if (error) {
+
+                console.error(
+                    "Could not load owned items:",
+                    error
+                );
+
+                renderCustomization();
+                updatePreview();
+                return;
+
+            }
+
+
+            owned = Array.isArray(data.owned)
+                ? data.owned
+                : [];
+
+
+            renderCustomization();
             updatePreview();
 
         }
