@@ -271,6 +271,9 @@ const roomStatus =
 let playerId =
     crypto.randomUUID();
 
+let accountId =
+    null;
+
 let playerName =
     "Player";
 
@@ -281,6 +284,9 @@ let roomChannel =
     null;
 
 let lobbyChannel =
+    null;
+
+let activeGameChannel =
     null;
 
 let x = 300;
@@ -309,21 +315,275 @@ async function loadPlayer() {
         }
     } = await db.auth.getSession();
 
-    if (session) {
+    if (!session) {
 
-        const metadata =
-            session.user.user_metadata || {};
+        roomStatus.textContent =
+            "Please log in first.";
 
-        playerName =
-            metadata.global_name ||
-            metadata.custom_claims?.global_name ||
-            metadata.full_name ||
-            metadata.name ||
-            "Player";
+        return false;
     }
+
+    accountId =
+        session.user.id;
+
+    const metadata =
+        session.user.user_metadata || {};
+
+    playerName =
+        metadata.global_name ||
+        metadata.custom_claims?.global_name ||
+        metadata.full_name ||
+        metadata.name ||
+        "Player";
 
     localPlayerName.textContent =
         playerName;
+
+    return true;
+}
+
+
+/* =========================
+   ONE GAME PER ACCOUNT
+========================= */
+
+async function claimActiveGame() {
+
+    if (!accountId) {
+        return false;
+    }
+
+    activeGameChannel =
+        db.channel(
+            "foxxy-active-games",
+            {
+                config: {
+                    presence: {
+                        key: playerId
+                    }
+                }
+            }
+        );
+
+    const subscribed =
+        await new Promise(resolve => {
+
+            let finished = false;
+
+            const timeout =
+                setTimeout(() => {
+
+                    if (!finished) {
+
+                        finished = true;
+
+                        resolve(false);
+                    }
+
+                }, 8000);
+
+            activeGameChannel.subscribe(
+                status => {
+
+                    console.log(
+                        "Active game status:",
+                        status
+                    );
+
+                    if (
+                        status ===
+                        "SUBSCRIBED" &&
+                        !finished
+                    ) {
+
+                        finished = true;
+
+                        clearTimeout(
+                            timeout
+                        );
+
+                        resolve(true);
+                    }
+
+                    if (
+                        (
+                            status ===
+                            "CHANNEL_ERROR" ||
+
+                            status ===
+                            "TIMED_OUT" ||
+
+                            status ===
+                            "CLOSED"
+                        ) &&
+                        !finished
+                    ) {
+
+                        finished = true;
+
+                        clearTimeout(
+                            timeout
+                        );
+
+                        resolve(false);
+                    }
+                }
+            );
+        });
+
+    if (!subscribed) {
+
+        await db.removeChannel(
+            activeGameChannel
+        );
+
+        activeGameChannel =
+            null;
+
+        roomStatus.textContent =
+            "Could not connect.";
+
+        return false;
+    }
+
+    /*
+     * Check every currently active account.
+     */
+    const state =
+        activeGameChannel.presenceState();
+
+    let alreadyPlaying =
+        false;
+
+    Object.values(state).forEach(
+        players => {
+
+            players.forEach(
+                player => {
+
+                    if (
+                        player &&
+                        player.accountId ===
+                        accountId
+                    ) {
+
+                        alreadyPlaying =
+                            true;
+                    }
+                }
+            );
+        }
+    );
+
+    if (alreadyPlaying) {
+
+        console.log(
+            "Account is already in a game."
+        );
+
+        roomStatus.textContent =
+            "Already in a game.";
+
+        await db.removeChannel(
+            activeGameChannel
+        );
+
+        activeGameChannel =
+            null;
+
+        return false;
+    }
+
+    /*
+     * Claim the account.
+     */
+    try {
+
+        await activeGameChannel.track({
+            accountId: accountId,
+            playerId: playerId,
+            name: playerName,
+            game: "foxxy-hangout"
+        });
+
+        /*
+         * Check again after tracking.
+         * This catches another session that
+         * appeared while we were connecting.
+         */
+        await new Promise(resolve =>
+            setTimeout(resolve, 150)
+        );
+
+        const newState =
+            activeGameChannel.presenceState();
+
+        let duplicate =
+            false;
+
+        Object.values(newState).forEach(
+            players => {
+
+                players.forEach(
+                    player => {
+
+                        if (
+                            player &&
+                            player.accountId ===
+                            accountId &&
+                            player.playerId !==
+                            playerId
+                        ) {
+
+                            duplicate =
+                                true;
+                        }
+                    }
+                );
+            }
+        );
+
+        if (duplicate) {
+
+            console.log(
+                "Another session claimed this account."
+            );
+
+            await db.removeChannel(
+                activeGameChannel
+            );
+
+            activeGameChannel =
+                null;
+
+            roomStatus.textContent =
+                "Already in a game.";
+
+            return false;
+        }
+
+        console.log(
+            "Active game claimed."
+        );
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "Active game error:",
+            error
+        );
+
+        await db.removeChannel(
+            activeGameChannel
+        );
+
+        activeGameChannel =
+            null;
+
+        return false;
+    }
 }
 
 
@@ -331,9 +591,76 @@ async function loadPlayer() {
    ROOM EVENTS
 ========================= */
 
+function removeRemotePlayer(id) {
+
+    if (!id) {
+        return;
+    }
+
+    const player =
+        document.getElementById(
+            "player-" + id
+        );
+
+    if (player) {
+        player.remove();
+    }
+}
+
+
+function syncRemotePlayers() {
+
+    if (!roomChannel) {
+        return;
+    }
+
+    const state =
+        roomChannel.presenceState();
+
+    const activeIds =
+        new Set();
+
+    Object.values(state).forEach(
+        players => {
+
+            players.forEach(
+                player => {
+
+                    if (
+                        player &&
+                        player.id &&
+                        player.id !== playerId
+                    ) {
+
+                        activeIds.add(
+                            player.id
+                        );
+                    }
+                }
+            );
+        }
+    );
+
+    document
+        .querySelectorAll(".player[id^='player-']")
+        .forEach(player => {
+
+            const id =
+                player.id.substring(
+                    "player-".length
+                );
+
+            if (!activeIds.has(id)) {
+                player.remove();
+            }
+        });
+}
+
+
 function setupRoomEventsForChannel(channel) {
 
     channel
+
         .on(
             "broadcast",
             {
@@ -389,6 +716,8 @@ function setupRoomEventsForChannel(channel) {
                 console.log(
                     "Room presence synced"
                 );
+
+                syncRemotePlayers();
             }
         )
 
@@ -413,21 +742,38 @@ function setupRoomEventsForChannel(channel) {
             },
             payload => {
 
-                const left =
-                    payload.leftPresences || {};
+                console.log(
+                    "Player left:",
+                    payload
+                );
 
-                Object.keys(left).forEach(
-                    id => {
+                const leftPresences =
+                    payload.leftPresences || [];
 
-                        const player =
-                            document.getElementById(
-                                "player-" + id
+                Object.values(
+                    leftPresences
+                ).forEach(
+                    presence => {
+
+                        if (
+                            presence &&
+                            presence.id
+                        ) {
+
+                            removeRemotePlayer(
+                                presence.id
                             );
-
-                        if (player) {
-                            player.remove();
                         }
                     }
+                );
+
+                /*
+                 * Re-check the actual room state
+                 * so stale players cannot remain.
+                 */
+                setTimeout(
+                    syncRemotePlayers,
+                    100
                 );
             }
         );
@@ -454,6 +800,7 @@ async function joinAvailableRoom() {
                 channelName,
                 {
                     config: {
+
                         broadcast: {
                             self: false
                         },
@@ -583,10 +930,29 @@ async function joinAvailableRoom() {
             roomNumber =
                 i;
 
-            await roomChannel.track({
-                id: playerId,
-                name: playerName
-            });
+            try {
+
+                await roomChannel.track({
+                    id: playerId,
+                    name: playerName
+                });
+
+            } catch (error) {
+
+                console.error(
+                    "Room presence error:",
+                    error
+                );
+
+                await db.removeChannel(
+                    channel
+                );
+
+                roomChannel =
+                    null;
+
+                continue;
+            }
 
             roomStatus.textContent =
                 "Room " + roomNumber;
@@ -649,6 +1015,7 @@ async function joinLobby() {
 
                     await lobbyChannel.track({
                         id: playerId,
+                        accountId: accountId,
                         name: playerName,
                         game: "foxxy-hangout"
                     });
@@ -1023,7 +1390,9 @@ async function leaveGame() {
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                error
+            );
         }
 
         roomChannel =
@@ -1040,10 +1409,31 @@ async function leaveGame() {
 
         } catch (error) {
 
-            console.error(error);
+            console.error(
+                error
+            );
         }
 
         lobbyChannel =
+            null;
+    }
+
+    if (activeGameChannel) {
+
+        try {
+
+            await db.removeChannel(
+                activeGameChannel
+            );
+
+        } catch (error) {
+
+            console.error(
+                error
+            );
+        }
+
+        activeGameChannel =
             null;
     }
 
@@ -1068,21 +1458,42 @@ document
 
 async function start() {
 
-    await loadPlayer();
+    const loaded =
+        await loadPlayer();
+
+    if (!loaded) {
+        return;
+    }
+
+    /*
+     * Claim the account before
+     * entering any game room.
+     */
+    const claimed =
+        await claimActiveGame();
+
+    if (!claimed) {
+        return;
+    }
 
     const joined =
         await joinAvailableRoom();
 
     if (!joined) {
+
+        if (activeGameChannel) {
+
+            await db.removeChannel(
+                activeGameChannel
+            );
+
+            activeGameChannel =
+                null;
+        }
+
         return;
     }
 
-    /*
-     * Lobby is separate from the
-     * actual game room. If lobby
-     * presence fails, the game
-     * still continues.
-     */
     joinLobby();
 
     gameLoop();
