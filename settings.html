@@ -3,7 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BOBLOX - SETTINGS</title>
+
+    <title>FoxxyDen - SETTINGS</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         * {
@@ -15,7 +18,10 @@
         body {
             background: white;
             font-family: Arial, Helvetica, sans-serif;
+            color: #111;
         }
+
+        /* TOP BAR */
 
         .topbar {
             width: 100%;
@@ -52,6 +58,8 @@
             cursor: pointer;
         }
 
+        /* SIDEBAR */
+
         .sidebar {
             position: fixed;
             top: 64px;
@@ -62,6 +70,7 @@
             border-right: 1px solid #ddd;
             transition: left 0.2s ease;
             padding: 20px 0;
+            z-index: 10;
         }
 
         .sidebar.open {
@@ -81,44 +90,398 @@
             background: #e5e5e5;
         }
 
+        /* CONTENT */
+
         .content {
-            padding: 40px;
+            width: 90%;
+            max-width: 900px;
+            margin: 50px auto;
         }
 
         h1 {
             font-size: 32px;
+            margin-bottom: 35px;
+        }
+
+        /* SETTINGS SECTION */
+
+        .settingsSection {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .sectionHeader {
+            background: #f3f3f3;
+            padding: 18px 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .sectionHeader h2 {
+            font-size: 21px;
+        }
+
+        .sectionContent {
+            padding: 25px 20px;
+        }
+
+        /* BIO */
+
+        .settingItem {
+            margin-bottom: 25px;
+        }
+
+        .settingItem:last-child {
+            margin-bottom: 0;
+        }
+
+        .settingItem label {
+            display: block;
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 9px;
+        }
+
+        .settingItem p {
+            color: #777;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 130px;
+            resize: vertical;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 15px;
+            outline: none;
+        }
+
+        textarea:focus {
+            border-color: #999;
+        }
+
+        .saveButton {
+            margin-top: 10px;
+            padding: 11px 18px;
+            background: #111;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .saveButton:hover {
+            background: #333;
+        }
+
+        /* SIGN OUT */
+
+        .dangerButton {
+            padding: 11px 18px;
+            background: #d93636;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .dangerButton:hover {
+            background: #b82c2c;
+        }
+
+        .status {
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
         }
     </style>
 </head>
 
 <body>
 
+    <!-- TOP BAR -->
+
     <div class="topbar">
+
         <div class="menu" onclick="toggleMenu()">
             <span></span>
             <span></span>
             <span></span>
         </div>
 
-        <div class="logo" onclick="location.href='index.html'">
-            BOBLOX
+        <div
+            class="logo"
+            onclick="location.href='index.html'"
+        >
+            FoxxyDen
         </div>
+
     </div>
 
-    <div class="sidebar" id="sidebar">
-        <a href="shop.html">Shop</a>
-        <a href="accesories.html">Customization</a>
-        <a href="settings.html">Settings</a>
+
+    <!-- SIDEBAR -->
+
+    <div
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <a href="shop.html">
+            Shop
+        </a>
+
+        <a href="customazition.html">
+            Customization
+        </a>
+
+        <a href="settings.html">
+            Settings
+        </a>
+
     </div>
 
-    <div class="content">
-        <h1>Settings</h1>
-    </div>
+
+    <!-- CONTENT -->
+
+    <main class="content">
+
+        <h1>
+            Settings
+        </h1>
+
+
+        <!-- ACCOUNT -->
+
+        <section class="settingsSection">
+
+            <div class="sectionHeader">
+
+                <h2>
+                    Account
+                </h2>
+
+            </div>
+
+
+            <div class="sectionContent">
+
+                <!-- BIO -->
+
+                <div class="settingItem">
+
+                    <label for="bioInput">
+                        Bio
+                    </label>
+
+                    <p>
+                        This bio will be displayed on your FoxxyDen profile.
+                    </p>
+
+                    <textarea
+                        id="bioInput"
+                        maxlength="500"
+                        placeholder="Tell people something about yourself..."
+                    ></textarea>
+
+                    <br>
+
+                    <button
+                        class="saveButton"
+                        onclick="saveBio()"
+                    >
+                        Save Bio
+                    </button>
+
+                    <div
+                        id="bioStatus"
+                        class="status"
+                    ></div>
+
+                </div>
+
+
+                <!-- SIGN OUT -->
+
+                <div class="settingItem">
+
+                    <label>
+                        Sign Out
+                    </label>
+
+                    <p>
+                        Sign out of your FoxxyDen account on this device.
+                    </p>
+
+                    <button
+                        class="dangerButton"
+                        onclick="signOut()"
+                    >
+                        Sign Out
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
 
     <script>
+
+        const SUPABASE_URL =
+            "https://dpcixdjggpulxlekrqqk.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
+
+        const db = supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+
+        let currentUser = null;
+
+
         function toggleMenu() {
-            document.getElementById("sidebar").classList.toggle("open");
+
+            document
+                .getElementById("sidebar")
+                .classList.toggle("open");
+
         }
+
+
+        async function loadSettings() {
+
+            const {
+                data: { session }
+            } = await db.auth.getSession();
+
+
+            if (!session) {
+
+                window.location.href =
+                    "index.html";
+
+                return;
+            }
+
+
+            currentUser = session.user;
+
+
+            const { data, error } =
+                await db
+                    .from("profiles")
+                    .select("bio")
+                    .eq("uuid", currentUser.id)
+                    .single();
+
+
+            if (error) {
+
+                console.error(
+                    "Could not load profile:",
+                    error
+                );
+
+                return;
+            }
+
+
+            document
+                .getElementById("bioInput")
+                .value = data.bio || "";
+        }
+
+
+        async function saveBio() {
+
+            if (!currentUser) {
+                return;
+            }
+
+
+            const bio =
+                document
+                    .getElementById("bioInput")
+                    .value;
+
+
+            const status =
+                document
+                    .getElementById("bioStatus");
+
+
+            status.textContent =
+                "Saving...";
+
+
+            const { error } =
+                await db
+                    .from("profiles")
+                    .update({
+                        bio: bio
+                    })
+                    .eq("uuid", currentUser.id);
+
+
+            if (error) {
+
+                console.error(
+                    "Could not save bio:",
+                    error
+                );
+
+                status.textContent =
+                    "Could not save bio: " +
+                    error.message;
+
+                return;
+            }
+
+
+            status.textContent =
+                "Bio saved!";
+        }
+
+
+        async function signOut() {
+
+            const { error } =
+                await db.auth.signOut();
+
+
+            if (error) {
+
+                alert(
+                    "Could not sign out: " +
+                    error.message
+                );
+
+                return;
+            }
+
+
+            window.location.href =
+                "index.html";
+        }
+
+
+        loadSettings();
+
     </script>
 
 </body>
