@@ -99,6 +99,115 @@
 
         h1 {
             font-size: 32px;
+            margin-bottom: 25px;
+        }
+
+        .items {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 600px;
+        }
+
+        .item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 7px;
+            background: #fafafa;
+        }
+
+        .item-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .item-text {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .creator {
+            font-size: 14px;
+            color: #666;
+            font-weight: normal;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+        }
+
+        .verified {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+            margin-left: 5px;
+            flex-shrink: 0;
+        }
+
+        .verified::before {
+            content: "♥";
+            position: absolute;
+            color: #ff69b4;
+            font-size: 20px;
+            line-height: 20px;
+        }
+
+        .verified span {
+            position: relative;
+            z-index: 1;
+            color: white;
+            font-size: 9px;
+            font-weight: 900;
+            line-height: 1;
+            transform: translateY(-1px);
+        }
+
+        .dot {
+            width: 38px;
+            height: 38px;
+            border-radius: 5px;
+            border: 1px solid rgba(0, 0, 0, 0.15);
+        }
+
+        .red {
+            background: red;
+        }
+
+        .green {
+            background: green;
+        }
+
+        .blue {
+            background: blue;
+        }
+
+        button {
+            border: none;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .free {
+            background: #7CFC00;
+            color: #111;
+        }
+
+        .free:hover {
+            background: #70e600;
+        }
+
+        .purchased {
+            background: #888;
+            cursor: default;
         }
     </style>
 </head>
@@ -107,10 +216,7 @@
 
     <div class="topbar">
 
-        <div
-            class="menu"
-            onclick="toggleMenu()"
-        >
+        <div class="menu" onclick="toggleMenu()">
             <span></span>
             <span></span>
             <span></span>
@@ -159,6 +265,11 @@
             Shop
         </h1>
 
+        <div
+            class="items"
+            id="items"
+        ></div>
+
     </div>
 
 
@@ -176,6 +287,29 @@
         );
 
 
+        const shopItems = [
+            {
+                id: "red",
+                name: "Red",
+                className: "red"
+            },
+            {
+                id: "green",
+                name: "Green",
+                className: "green"
+            },
+            {
+                id: "blue",
+                name: "Blue",
+                className: "blue"
+            }
+        ];
+
+
+        let session = null;
+        let owned = [];
+
+
         function toggleMenu() {
 
             document
@@ -185,27 +319,39 @@
         }
 
 
-        async function loadBalance() {
+        function verificationBadge() {
+
+            return `
+                <span class="verified">
+                    <span>✓</span>
+                </span>
+            `;
+
+        }
+
+
+        async function loadShop() {
 
             const {
-                data: { session }
+                data: { session: currentSession }
             } = await db.auth.getSession();
+
+            session = currentSession;
 
 
             if (!session) {
 
-                document
-                    .getElementById("balance")
-                    .textContent = "0 FoxCoins";
-
+                owned = [];
+                renderShop();
                 return;
+
             }
 
 
             const { data, error } =
                 await db
                     .from("profiles")
-                    .select("currency")
+                    .select("owned, currency")
                     .eq("uuid", session.user.id)
                     .single();
 
@@ -213,12 +359,19 @@
             if (error) {
 
                 console.error(
-                    "Could not load currency:",
+                    "Could not load profile:",
                     error
                 );
 
+                renderShop();
                 return;
+
             }
+
+
+            owned = Array.isArray(data.owned)
+                ? data.owned
+                : [];
 
 
             const currency =
@@ -230,10 +383,123 @@
                 .textContent =
                     currency.toLocaleString() +
                     " FoxCoins";
+
+
+            renderShop();
+
         }
 
 
-        loadBalance();
+        function renderShop() {
+
+            const container =
+                document.getElementById("items");
+
+            container.innerHTML = "";
+
+
+            shopItems.forEach(function(item) {
+
+                const isOwned =
+                    owned.includes(item.id);
+
+
+                const element =
+                    document.createElement("div");
+
+                element.className = "item";
+
+
+                element.innerHTML = `
+
+                    <div class="item-info">
+
+                        <div class="dot ${item.className}"></div>
+
+                        <div>
+
+                            <div class="item-text">
+                                ${item.name}
+                            </div>
+
+                            <div class="creator">
+                                Creator: Terry
+                                ${verificationBadge()}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <button
+                        class="${isOwned ? "purchased" : "free"}"
+                        ${isOwned ? "disabled" : ""}
+                        onclick="buyItem('${item.id}')"
+                    >
+                        ${isOwned ? "Purchased" : "FREE"}
+                    </button>
+
+                `;
+
+
+                container.appendChild(element);
+
+            });
+
+        }
+
+
+        async function buyItem(itemId) {
+
+            if (!session) {
+
+                alert("You need to log in first.");
+                return;
+
+            }
+
+
+            if (owned.includes(itemId)) {
+                return;
+            }
+
+
+            const newOwned = [
+                ...owned,
+                itemId
+            ];
+
+
+            const { error } =
+                await db
+                    .from("profiles")
+                    .update({
+                        owned: newOwned
+                    })
+                    .eq("uuid", session.user.id);
+
+
+            if (error) {
+
+                console.error(
+                    "Could not purchase item:",
+                    error
+                );
+
+                alert("Could not purchase item.");
+                return;
+
+            }
+
+
+            owned = newOwned;
+
+            renderShop();
+
+        }
+
+
+        loadShop();
 
     </script>
 
