@@ -270,6 +270,49 @@ const roomStatus =
 
 
 /* =========================
+   CUSTOMIZATION
+========================= */
+
+const customizationColors = {
+    gray: "#999",
+    red: "red",
+    green: "green",
+    blue: "blue"
+};
+
+let equipped =
+    "gray";
+
+
+function getCustomizationColor(
+    id
+) {
+
+    return (
+        customizationColors[id] ||
+        customizationColors.gray
+    );
+}
+
+
+function applyLocalCustomization() {
+
+    const color =
+        getCustomizationColor(
+            equipped
+        );
+
+    localPlayer.style.background =
+        color;
+
+    localPlayer.style.borderColor =
+        equipped === "gray"
+            ? "#555"
+            : color;
+}
+
+
+/* =========================
    PLAYER / SESSION
 ========================= */
 
@@ -353,6 +396,37 @@ async function loadPlayer() {
     localPlayerName.textContent =
         playerName;
 
+
+    /*
+     * Load equipped customization
+     * from the same profile used by
+     * the Customization page.
+     */
+    const {
+        data: profile,
+        error
+    } = await db
+        .from("profiles")
+        .select("equipped")
+        .eq("uuid", accountId)
+        .maybeSingle();
+
+    if (error) {
+
+        console.error(
+            "Could not load customization:",
+            error
+        );
+
+    } else if (profile) {
+
+        equipped =
+            profile.equipped ||
+            "gray";
+    }
+
+    applyLocalCustomization();
+
     return true;
 }
 
@@ -407,10 +481,6 @@ async function claimActiveGame() {
         "Game session claimed."
     );
 
-    /*
-     * Refresh the database lock
-     * every 10 seconds.
-     */
     sessionHeartbeat =
         setInterval(
             async () => {
@@ -650,10 +720,6 @@ function setupRoomEventsForChannel(
                     }
                 );
 
-                /*
-                 * Re-check the room shortly
-                 * after a leave event.
-                 */
                 setTimeout(
                     syncRemotePlayers,
                     100
@@ -699,11 +765,6 @@ async function joinAvailableRoom() {
                 }
             );
 
-        /*
-         * IMPORTANT:
-         * Event handlers must be added
-         * before subscribe().
-         */
         setupRoomEventsForChannel(
             channel
         );
@@ -838,7 +899,8 @@ async function joinAvailableRoom() {
 
                 await roomChannel.track({
                     id: playerId,
-                    name: playerName
+                    name: playerName,
+                    equipped: equipped
                 });
 
             } catch (error) {
@@ -924,7 +986,9 @@ async function joinLobby() {
                         name:
                             playerName,
                         game:
-                            "foxxy-hangout"
+                            "foxxy-hangout",
+                        equipped:
+                            equipped
                     });
 
                     console.log(
@@ -992,6 +1056,19 @@ function updateRemotePlayer(
             );
     }
 
+    const color =
+        getCustomizationColor(
+            data.equipped
+        );
+
+    player.style.background =
+        color;
+
+    player.style.borderColor =
+        data.equipped === "gray"
+            ? "#555"
+            : color;
+
     player.style.left =
         data.x + "px";
 
@@ -1038,6 +1115,9 @@ function broadcastPosition() {
 
             name:
                 playerName,
+
+            equipped:
+                equipped,
 
             x:
                 x,
@@ -1340,9 +1420,6 @@ async function leaveGame() {
             null;
     }
 
-    /*
-     * Release database lock FIRST.
-     */
     if (accountId) {
 
         try {
@@ -1407,16 +1484,6 @@ async function leaveGame() {
 }
 
 
-document
-    .getElementById(
-        "leaveButton"
-    )
-    .addEventListener(
-        "click",
-        leaveGame
-    );
-
-
 /* =========================
    BROWSER CLOSE / RELOAD
 ========================= */
@@ -1450,9 +1517,6 @@ async function start() {
         return;
     }
 
-    /*
-     * Database-enforced one-game lock.
-     */
     const claimed =
         await claimActiveGame();
 
