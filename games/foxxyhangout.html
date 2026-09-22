@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>Foxxy Hangout</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -72,6 +73,7 @@ html, body {
     border: 2px solid #555;
     border-radius: 4px;
     transform: translateX(-50%);
+    overflow: visible;
 }
 
 .playerName {
@@ -88,6 +90,42 @@ html, body {
         -1px -1px 2px black,
         1px -1px 2px black,
         -1px 1px 2px black;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.rickrollCharacter {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 150px;
+    height: 150px;
+    transform: translate(-50%, -50%);
+    border: none;
+    border-radius: 6px;
+    overflow: hidden;
+    z-index: 3;
+}
+
+.rickrollCharacter iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.player.rickrolling {
+    background: transparent !important;
+    border-color: transparent !important;
+}
+
+#rickrollAudio {
+    position: fixed;
+    width: 1px;
+    height: 1px;
+    left: -10px;
+    top: -10px;
+    border: 0;
+    opacity: 0;
     pointer-events: none;
 }
 
@@ -234,6 +272,12 @@ html, body {
 
 </div>
 
+<iframe
+    id="rickrollAudio"
+    src="about:blank"
+    allow="autoplay"
+></iframe>
+
 <script>
 
 const SUPABASE_URL =
@@ -268,15 +312,25 @@ const chatHeader =
 const roomStatus =
     document.getElementById("roomStatus");
 
+const game =
+    document.getElementById("game");
+
+const rickrollAudio =
+    document.getElementById("rickrollAudio");
+
 
 /* =========================
    CUSTOMIZATION
 ========================= */
 
 const customizationColors = {
+
     gray: "#999",
+
     red: "red",
+
     green: "green",
+
     blue: "blue"
 };
 
@@ -284,9 +338,7 @@ let equipped =
     "gray";
 
 
-function getCustomizationColor(
-    id
-) {
+function getCustomizationColor(id) {
 
     return (
         customizationColors[id] ||
@@ -296,6 +348,14 @@ function getCustomizationColor(
 
 
 function applyLocalCustomization() {
+
+    if (
+        localPlayer.classList.contains(
+            "rickrolling"
+        )
+    ) {
+        return;
+    }
 
     const color =
         getCustomizationColor(
@@ -309,6 +369,232 @@ function applyLocalCustomization() {
         equipped === "gray"
             ? "#555"
             : color;
+}
+
+
+/* =========================
+   RICKROLL SECRET
+========================= */
+
+let localRickrolling =
+    false;
+
+let localRickrollTimeout =
+    null;
+
+
+function createRickrollVisual(player) {
+
+    if (!player) {
+        return;
+    }
+
+    if (
+        player.querySelector(
+            ".rickrollCharacter"
+        )
+    ) {
+        return;
+    }
+
+    player.classList.add(
+        "rickrolling"
+    );
+
+    const gif =
+        document.createElement(
+            "iframe"
+        );
+
+    gif.className =
+        "rickrollCharacter";
+
+    gif.src =
+        "https://tenor.com/embed/9653865145824651481";
+
+    gif.setAttribute(
+        "allowfullscreen",
+        ""
+    );
+
+    gif.setAttribute(
+        "loading",
+        "eager"
+    );
+
+    player.appendChild(
+        gif
+    );
+}
+
+
+function removeRickrollVisual(player) {
+
+    if (!player) {
+        return;
+    }
+
+    const gif =
+        player.querySelector(
+            ".rickrollCharacter"
+        );
+
+    if (gif) {
+        gif.remove();
+    }
+
+    player.classList.remove(
+        "rickrolling"
+    );
+
+    if (
+        player === localPlayer
+    ) {
+        applyLocalCustomization();
+    }
+}
+
+
+function playRickrollMusic() {
+
+    /*
+     * YouTube Rick Astley:
+     * dQw4w9WgXcQ
+     *
+     * The player is hidden off-screen.
+     */
+
+    rickrollAudio.src =
+        "https://www.youtube.com/embed/dQw4w9WgXcQ" +
+        "?autoplay=1" +
+        "&controls=0" +
+        "&loop=1" +
+        "&playlist=dQw4w9WgXcQ";
+
+}
+
+
+function stopRickrollMusic() {
+
+    rickrollAudio.src =
+        "about:blank";
+}
+
+
+function activateRickroll(
+    player
+) {
+
+    if (!player) {
+        return;
+    }
+
+    createRickrollVisual(
+        player
+    );
+
+    if (
+        player === localPlayer
+    ) {
+
+        localRickrolling =
+            true;
+
+        playRickrollMusic();
+
+        if (
+            localRickrollTimeout
+        ) {
+
+            clearTimeout(
+                localRickrollTimeout
+            );
+        }
+
+        localRickrollTimeout =
+            setTimeout(
+                () => {
+
+                    localRickrolling =
+                        false;
+
+                    removeRickrollVisual(
+                        localPlayer
+                    );
+
+                    stopRickrollMusic();
+
+                },
+                14000
+            );
+    }
+}
+
+
+function activateRemoteRickroll(
+    id
+) {
+
+    const player =
+        document.getElementById(
+            "player-" + id
+        );
+
+    if (!player) {
+        return;
+    }
+
+    activateRickroll(
+        player
+    );
+
+    /*
+     * Remote players don't control
+     * the local music timer.
+     */
+    setTimeout(
+        () => {
+
+            removeRickrollVisual(
+                player
+            );
+
+        },
+        14000
+    );
+}
+
+
+function triggerRickroll() {
+
+    if (
+        !roomChannel ||
+        leaving
+    ) {
+        return;
+    }
+
+    activateRickroll(
+        localPlayer
+    );
+
+    roomChannel.send({
+
+        type:
+            "broadcast",
+
+        event:
+            "rickroll",
+
+        payload: {
+
+            id:
+                playerId,
+
+            name:
+                playerName
+        }
+    });
 }
 
 
@@ -344,18 +630,25 @@ let sessionHeartbeat =
     null;
 
 let x = 300;
+
 let y = 0;
 
-let velocityY = 0;
-let onGround = true;
+let velocityY =
+    0;
 
-let lastBroadcast = 0;
+let onGround =
+    true;
+
+let lastBroadcast =
+    0;
 
 let leaving =
     false;
 
 const keys = {
+
     left: false,
+
     right: false
 };
 
@@ -370,7 +663,8 @@ async function loadPlayer() {
         data: {
             session
         }
-    } = await db.auth.getSession();
+    } =
+        await db.auth.getSession();
 
     if (!session) {
 
@@ -384,7 +678,8 @@ async function loadPlayer() {
         session.user.id;
 
     const metadata =
-        session.user.user_metadata || {};
+        session.user.user_metadata ||
+        {};
 
     playerName =
         metadata.global_name ||
@@ -402,14 +697,16 @@ async function loadPlayer() {
      * from the same profile used by
      * the Customization page.
      */
+
     const {
         data: profile,
         error
-    } = await db
-        .from("profiles")
-        .select("equipped")
-        .eq("uuid", accountId)
-        .maybeSingle();
+    } =
+        await db
+            .from("profiles")
+            .select("equipped")
+            .eq("uuid", accountId)
+            .maybeSingle();
 
     if (error) {
 
@@ -444,13 +741,17 @@ async function claimActiveGame() {
     const {
         data,
         error
-    } = await db.rpc(
-        "claim_game_session",
-        {
-            p_session_id: sessionId,
-            p_game: "foxxy-hangout"
-        }
-    );
+    } =
+        await db.rpc(
+            "claim_game_session",
+            {
+                p_session_id:
+                    sessionId,
+
+                p_game:
+                    "foxxy-hangout"
+            }
+        );
 
     if (error) {
 
@@ -492,13 +793,14 @@ async function claimActiveGame() {
                 const {
                     data,
                     error
-                } = await db.rpc(
-                    "refresh_game_session",
-                    {
-                        p_session_id:
-                            sessionId
-                    }
-                );
+                } =
+                    await db.rpc(
+                        "refresh_game_session",
+                        {
+                            p_session_id:
+                                sessionId
+                        }
+                    );
 
                 if (
                     error ||
@@ -584,20 +886,22 @@ function syncRemotePlayers() {
         .querySelectorAll(
             ".player[id^='player-']"
         )
-        .forEach(player => {
+        .forEach(
+            player => {
 
-            const id =
-                player.id.substring(
-                    "player-".length
-                );
+                const id =
+                    player.id.substring(
+                        "player-".length
+                    );
 
-            if (
-                !activeIds.has(id)
-            ) {
+                if (
+                    !activeIds.has(id)
+                ) {
 
-                player.remove();
+                    player.remove();
+                }
             }
-        });
+        );
 }
 
 
@@ -634,6 +938,7 @@ function setupRoomEventsForChannel(
             }
         )
 
+
         .on(
             "broadcast",
             {
@@ -652,11 +957,53 @@ function setupRoomEventsForChannel(
                 }
 
                 addMessage(
-                    data.name || "Player",
+                    data.name ||
+                    "Player",
+
                     data.message
                 );
             }
         )
+
+
+        /*
+         * SECRET RICKROLL EVENT
+         */
+
+        .on(
+            "broadcast",
+            {
+                event: "rickroll"
+            },
+            payload => {
+
+                const data =
+                    payload.payload;
+
+                if (
+                    !data ||
+                    data.id === playerId
+                ) {
+                    return;
+                }
+
+                activateRemoteRickroll(
+                    data.id
+                );
+
+                /*
+                 * Try to start music for
+                 * the other players too.
+                 *
+                 * Browser autoplay policies
+                 * may block this if they have
+                 * not interacted with the page.
+                 */
+
+                playRickrollMusic();
+            }
+        )
+
 
         .on(
             "presence",
@@ -673,6 +1020,7 @@ function setupRoomEventsForChannel(
             }
         )
 
+
         .on(
             "presence",
             {
@@ -686,6 +1034,7 @@ function setupRoomEventsForChannel(
                 );
             }
         )
+
 
         .on(
             "presence",
@@ -898,9 +1247,14 @@ async function joinAvailableRoom() {
             try {
 
                 await roomChannel.track({
-                    id: playerId,
-                    name: playerName,
-                    equipped: equipped
+                    id:
+                        playerId,
+
+                    name:
+                        playerName,
+
+                    equipped:
+                        equipped
                 });
 
             } catch (error) {
@@ -924,7 +1278,8 @@ async function joinAvailableRoom() {
                 "Room " + roomNumber;
 
             chatHeader.textContent =
-                "Chat · Room " + roomNumber;
+                "Chat · Room " +
+                roomNumber;
 
             console.log(
                 "Joined room:",
@@ -980,13 +1335,18 @@ async function joinLobby() {
                 try {
 
                     await lobbyChannel.track({
-                        id: playerId,
+                        id:
+                            playerId,
+
                         accountId:
                             accountId,
+
                         name:
                             playerName,
+
                         game:
                             "foxxy-hangout",
+
                         equipped:
                             equipped
                     });
@@ -1043,7 +1403,8 @@ function updateRemotePlayer(
             "playerName";
 
         name.textContent =
-            data.name || "Player";
+            data.name ||
+            "Player";
 
         player.appendChild(
             name
@@ -1056,18 +1417,25 @@ function updateRemotePlayer(
             );
     }
 
-    const color =
-        getCustomizationColor(
-            data.equipped
-        );
+    if (
+        !player.classList.contains(
+            "rickrolling"
+        )
+    ) {
 
-    player.style.background =
-        color;
+        const color =
+            getCustomizationColor(
+                data.equipped
+            );
 
-    player.style.borderColor =
-        data.equipped === "gray"
-            ? "#555"
-            : color;
+        player.style.background =
+            color;
+
+        player.style.borderColor =
+            data.equipped === "gray"
+                ? "#555"
+                : color;
+    }
 
     player.style.left =
         data.x + "px";
@@ -1249,12 +1617,60 @@ document.addEventListener(
     "keydown",
     event => {
 
+        /*
+         * Chat gets priority.
+         * Typing "rroll" into chat does
+         * absolutely nothing.
+         */
+
         if (
             document.activeElement ===
             chatInput
         ) {
             return;
         }
+
+
+        /*
+         * SECRET:
+         * RROLL
+         *
+         * We detect the sequence
+         * while the game is focused.
+         */
+
+        if (
+            event.key.length === 1
+        ) {
+
+            gameTypedSecret +=
+                event.key.toLowerCase();
+
+            if (
+                gameTypedSecret.length >
+                5
+            ) {
+
+                gameTypedSecret =
+                    gameTypedSecret.slice(
+                        -5
+                    );
+            }
+
+            if (
+                gameTypedSecret ===
+                "rroll"
+            ) {
+
+                gameTypedSecret =
+                    "";
+
+                triggerRickroll();
+
+                return;
+            }
+        }
+
 
         if (
             event.key === "a" ||
@@ -1266,6 +1682,7 @@ document.addEventListener(
                 true;
         }
 
+
         if (
             event.key === "d" ||
             event.key === "D" ||
@@ -1275,6 +1692,7 @@ document.addEventListener(
             keys.right =
                 true;
         }
+
 
         if (
             event.code === "Space"
@@ -1309,6 +1727,7 @@ document.addEventListener(
                 false;
         }
 
+
         if (
             event.key === "d" ||
             event.key === "D" ||
@@ -1320,6 +1739,14 @@ document.addEventListener(
         }
     }
 );
+
+
+/*
+ * Stores only the most recent
+ * five game-window characters.
+ */
+let gameTypedSecret =
+    "";
 
 
 /* =========================
@@ -1342,6 +1769,7 @@ function gameLoop() {
         25 -
         21;
 
+
     if (
         document.activeElement !==
         chatInput
@@ -1356,20 +1784,24 @@ function gameLoop() {
         }
     }
 
+
     x =
         Math.max(
             25 + 21,
+
             Math.min(
                 maxX,
                 x
             )
         );
 
+
     velocityY -=
         0.6;
 
     y +=
         velocityY;
+
 
     if (y <= 0) {
 
@@ -1383,13 +1815,16 @@ function gameLoop() {
             true;
     }
 
+
     localPlayer.style.left =
         x + "px";
 
     localPlayer.style.bottom =
         (80 + y) + "px";
 
+
     broadcastPosition();
+
 
     requestAnimationFrame(
         gameLoop
@@ -1410,6 +1845,7 @@ async function leaveGame() {
     leaving =
         true;
 
+
     if (sessionHeartbeat) {
 
         clearInterval(
@@ -1419,6 +1855,7 @@ async function leaveGame() {
         sessionHeartbeat =
             null;
     }
+
 
     if (accountId) {
 
@@ -1441,6 +1878,7 @@ async function leaveGame() {
         }
     }
 
+
     if (roomChannel) {
 
         try {
@@ -1459,6 +1897,7 @@ async function leaveGame() {
         roomChannel =
             null;
     }
+
 
     if (lobbyChannel) {
 
@@ -1479,9 +1918,20 @@ async function leaveGame() {
             null;
     }
 
+
     window.location.href =
         "../index.html";
 }
+
+
+document
+    .getElementById(
+        "leaveButton"
+    )
+    .addEventListener(
+        "click",
+        leaveGame
+    );
 
 
 /* =========================
@@ -1517,12 +1967,14 @@ async function start() {
         return;
     }
 
+
     const claimed =
         await claimActiveGame();
 
     if (!claimed) {
         return;
     }
+
 
     const joined =
         await joinAvailableRoom();
@@ -1538,6 +1990,7 @@ async function start() {
             sessionHeartbeat =
                 null;
         }
+
 
         try {
 
@@ -1559,10 +2012,12 @@ async function start() {
         return;
     }
 
+
     joinLobby();
 
     gameLoop();
 }
+
 
 start();
 
