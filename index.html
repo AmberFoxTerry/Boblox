@@ -559,9 +559,6 @@
 
         /*
          * Live game presence.
-         *
-         * Foxxy Hangout will announce itself
-         * through this channel.
          */
 
         let gamePresenceChannel = null;
@@ -765,29 +762,37 @@
 
 
             gamePresenceChannel.subscribe(
-                async function(status) {
+                function(status) {
 
                     if (
-                        status !==
+                        status ===
                         "SUBSCRIBED"
                     ) {
-                        return;
+
+                        updateGameOnlineCount();
+
                     }
 
-
-                    /*
-                     * This page itself does NOT
-                     * count as a player.
-                     *
-                     * We only listen to the
-                     * lobby.
-                     */
-
-                    updateGameOnlineCount();
                 }
             );
         }
 
+
+        /*
+         * Count unique players.
+         *
+         * Each player sends:
+         *
+         * {
+         *     id: playerId,
+         *     name: playerName,
+         *     game: "foxxy-hangout"
+         * }
+         *
+         * The Set prevents duplicate
+         * presence entries from counting
+         * multiple times.
+         */
 
         function updateGameOnlineCount() {
 
@@ -802,14 +807,6 @@
                 gamePresenceChannel
                     .presenceState();
 
-
-            /*
-             * Every player announces their
-             * own unique ID.
-             *
-             * Use a Set so duplicate presence
-             * entries cannot increase the count.
-             */
 
             const playerIds =
                 new Set();
@@ -858,16 +855,25 @@
 
         /*
          * Render game results.
+         *
+         * IMPORTANT:
+         * Clear the old results first.
+         *
+         * Presence updates call this function
+         * repeatedly. Without clearing the
+         * container, every update creates
+         * another copy of the game.
          */
 
-        function renderGames(
-            search
-        ) {
+        function renderGames(search) {
 
             const results =
                 document.getElementById(
                     "searchResults"
                 );
+
+
+            results.innerHTML = "";
 
 
             const matchingGames =
@@ -991,6 +997,7 @@
 
                             window.location.href =
                                 game.url;
+
                         };
 
 
@@ -1025,6 +1032,7 @@
                     clearTimeout(
                         searchTimeout
                     );
+
 
                     const search =
                         this.value.trim();
