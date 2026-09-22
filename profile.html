@@ -1,748 +1,494 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>FoxxyDen - Profile</title>
+<title>FoxxyDen - PROFILE</title>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        background: #111;
+        color: white;
+        font-family: Arial, sans-serif;
+        min-height: 100vh;
+    }
+
+    /* TOP BAR */
+
+    .topbar {
+        height: 60px;
+        background: #ff8c00;
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+    }
+
+    .menu-button {
+        font-size: 28px;
+        cursor: pointer;
+        margin-right: 20px;
+        user-select: none;
+    }
+
+    .logo {
+        font-size: 25px;
+        font-weight: bold;
+    }
+
+    /* SIDEBAR */
+
+    .sidebar {
+        position: fixed;
+        top: 60px;
+        left: 0;
+        width: 220px;
+        height: calc(100vh - 60px);
+        background: #181818;
+        border-right: 1px solid #333;
+        padding-top: 20px;
+        transform: translateX(-220px);
+        transition: transform 0.2s ease;
+        z-index: 999;
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar a {
+        display: block;
+        color: white;
+        text-decoration: none;
+        padding: 16px 22px;
+        font-size: 17px;
+    }
+
+    .sidebar a:hover {
+        background: #252525;
+    }
+
+    /* MAIN */
+
+    .main {
+        padding: 60px 40px 40px;
+        min-height: 100vh;
+    }
+
+    .profile-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding-top: 180px;
+    }
+
+    /* PROFILE HEADER */
+
+    .profile-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 50px;
+    }
+
+    .profile-info {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .profile-pfp {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #222;
+    }
+
+    .display-name-row {
+        display: flex;
+        align-items: center;
+    }
+
+    .display-name {
+        font-size: 32px;
+        font-weight: bold;
+    }
+
+    /* VERIFICATION HEART */
+
+    .verified {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 26px;
+        height: 26px;
+        margin-left: 7px;
+        flex-shrink: 0;
+    }
+
+    .verified::before {
+        content: "♥";
+        position: absolute;
+        color: #ff69b4;
+        font-size: 26px;
+        line-height: 26px;
+    }
+
+    .verified span {
+        position: relative;
+        z-index: 1;
+        color: white;
+        font-size: 12px;
+        font-weight: 900;
+        line-height: 1;
+        transform: translateY(-1px);
+    }
+
+    /* CHARACTER PREVIEW */
+
+    .character-preview {
+        width: 220px;
+        height: 220px;
+        background: #181818;
+        border: 1px solid #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 12px;
+    }
+
+    .character {
+        width: 140px;
+        height: 140px;
+        background: #777;
+        border-radius: 8px;
+        box-shadow:
+            inset 0 0 0 4px #555,
+            0 10px 25px rgba(0, 0, 0, 0.5);
+    }
+
+    /* DIVIDERS */
+
+    .divider {
+        height: 1px;
+        background: #333;
+        margin: 45px 0;
+    }
+
+    /* SECTIONS */
+
+    .section-title {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+
+    .wearing {
+        min-height: 80px;
+        color: #aaa;
+        font-size: 16px;
+    }
+
+    .bio {
+        color: #ddd;
+        font-size: 17px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+        word-break: break-word;
+        min-height: 40px;
+    }
+
+    .empty {
+        color: #666;
+    }
+
+    /* MOBILE */
+
+    @media (max-width: 700px) {
+        .main {
+            padding-left: 20px;
+            padding-right: 20px;
         }
 
-        body {
-            background: white;
-            font-family: Arial, Helvetica, sans-serif;
-            color: #111;
+        .profile-container {
+            padding-top: 120px;
         }
 
-        /* TOP BAR */
-
-        .topbar {
-            width: 100%;
-            height: 64px;
-            background: #f3f3f3;
-            display: flex;
-            align-items: center;
-            padding-left: 18px;
-            border-bottom: 1px solid #dedede;
-            position: relative;
-        }
-
-        .menu {
-            width: 28px;
-            height: 22px;
-            display: flex;
+        .profile-header {
             flex-direction: column;
-            justify-content: space-between;
-            cursor: pointer;
+            align-items: flex-start;
         }
 
-        .menu span {
+        .character-preview {
+            align-self: center;
+        }
+
+        .profile-info {
             width: 100%;
-            height: 3px;
-            background: #111;
-            border-radius: 2px;
         }
 
-        .logo {
-            margin-left: 18px;
+        .profile-pfp {
+            width: 85px;
+            height: 85px;
+        }
+
+        .display-name {
             font-size: 25px;
-            font-weight: 900;
-            color: #111;
-            letter-spacing: -1px;
-            cursor: pointer;
         }
-
-        /* ACCOUNT */
-
-        #account {
-            position: absolute;
-            right: 18px;
-            top: 8px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-        }
-
-        #loginButton {
-            background: #5865F2;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            padding: 11px 16px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        #loginButton:hover {
-            background: #4752C4;
-        }
-
-        #profile {
-            display: none;
-            align-items: center;
-            gap: 9px;
-            padding: 5px 10px 5px 5px;
-            border-radius: 25px;
-            cursor: pointer;
-            user-select: none;
-        }
-
-        #profile:hover {
-            background: #e5e5e5;
-        }
-
-        #profilePic {
-            width: 38px;
-            height: 38px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: #ddd;
-        }
-
-        #profileNameContainer {
-            display: flex;
-            align-items: center;
-        }
-
-        #profileName {
-            font-size: 15px;
-            font-weight: 700;
-            color: #111;
-            max-width: 160px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* VERIFICATION */
-
-        .verified {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 26px;
-            height: 26px;
-            margin-left: 5px;
-            flex-shrink: 0;
-        }
-
-        .verified::before {
-            content: "♥";
-            position: absolute;
-            color: #ff69b4;
-            font-size: 26px;
-            line-height: 26px;
-        }
-
-        .verified span {
-            position: relative;
-            z-index: 1;
-            color: white;
-            font-size: 12px;
-            font-weight: 900;
-            line-height: 1;
-            transform: translateY(-1px);
-        }
-
-        /* PROFILE MENU */
-
-        #profileMenu {
-            display: none;
-            position: absolute;
-            top: 56px;
-            right: 0;
-            width: 190px;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
-            overflow: hidden;
-            z-index: 100;
-        }
-
-        #profileMenu.open {
-            display: block;
-        }
-
-        .profileOption {
-            width: 100%;
-            padding: 14px 16px;
-            background: white;
-            border: none;
-            text-align: left;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        .profileOption:hover {
-            background: #f1f1f1;
-        }
-
-        /* SIDEBAR */
-
-        .sidebar {
-            position: fixed;
-            top: 64px;
-            left: -280px;
-            width: 280px;
-            height: calc(100vh - 64px);
-            background: #f5f5f5;
-            border-right: 1px solid #ddd;
-            transition: left 0.2s ease;
-            padding: 20px 0;
-            z-index: 10;
-        }
-
-        .sidebar.open {
-            left: 0;
-        }
-
-        .sidebar a {
-            display: block;
-            padding: 18px 24px;
-            color: #111;
-            text-decoration: none;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .sidebar a:hover {
-            background: #e5e5e5;
-        }
-
-        /* PROFILE CONTENT */
-
-        .profilePage {
-            width: 90%;
-            max-width: 1100px;
-            margin: 140px auto 80px auto;
-        }
-
-        .profileTop {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 60px;
-        }
-
-        .identity {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .bigAvatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: #ddd;
-        }
-
-        .identityName {
-            display: flex;
-            align-items: center;
-        }
-
-        .identityName span.name {
-            font-size: 32px;
-            font-weight: 900;
-        }
-
-        /* CHARACTER PREVIEW */
-
-        .characterPreview {
-            width: 260px;
-            height: 260px;
-            border: 1px solid #ddd;
-            background: #f5f5f5;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: 700;
-            color: #777;
-        }
-
-        .divider {
-            width: 100%;
-            height: 1px;
-            background: #ddd;
-            margin: 50px 0 30px 0;
-        }
-
-        h2 {
-            font-size: 24px;
-            margin-bottom: 20px;
-        }
-
-        /* CURRENTLY WEARING */
-
-        .wearing {
-            min-height: 100px;
-            display: flex;
-            align-items: center;
-            color: #777;
-            font-size: 16px;
-        }
-
-        /* BIO */
-
-        .bio {
-            min-height: 80px;
-            font-size: 17px;
-            line-height: 1.5;
-            white-space: pre-wrap;
-            color: #333;
-        }
-
-        .emptyBio {
-            color: #999;
-            font-style: italic;
-        }
-
-        @media (max-width: 700px) {
-
-            .profileTop {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .characterPreview {
-                width: 100%;
-                max-width: 260px;
-            }
-
-            .profilePage {
-                margin-top: 90px;
-            }
-        }
-    </style>
+    }
+</style>
 </head>
 
 <body>
 
-    <!-- TOP BAR -->
+<!-- TOP BAR -->
 
-    <div class="topbar">
+<div class="topbar">
+    <div class="menu-button" onclick="toggleSidebar()">☰</div>
+    <div class="logo">FoxxyDen</div>
+</div>
 
-        <div class="menu" onclick="toggleMenu()">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
+<!-- SIDEBAR -->
 
-        <div class="logo" onclick="location.href='index.html'">
-            FoxxyDen
-        </div>
+<div class="sidebar" id="sidebar">
+    <a href="shop.html">Shop</a>
+    <a href="customazition.html">Customization</a>
+    <a href="settings.html">Settings</a>
+</div>
 
-        <div id="account">
+<!-- MAIN -->
 
-            <button
-                id="loginButton"
-                onclick="loginWithDiscord()"
-            >
-                LOGIN WITH DISCORD
-            </button>
+<div class="main">
 
-            <div
-                id="profile"
-                onclick="toggleProfileMenu()"
-            >
+    <div class="profile-container">
+
+        <!-- PROFILE HEADER -->
+
+        <div class="profile-header">
+
+            <div class="profile-info">
 
                 <img
-                    id="profilePic"
+                    id="profilePfp"
+                    class="profile-pfp"
                     src=""
                     alt="Profile picture"
                 >
 
-                <div id="profileNameContainer">
-
-                    <span id="profileName"></span>
-
-                    <span
-                        id="verificationBadge"
-                        class="verified"
-                        style="display: none;"
-                    >
-                        <span>✓</span>
-                    </span>
-
-                </div>
-
-            </div>
-
-            <div id="profileMenu">
-
-                <button
-                    class="profileOption"
-                    onclick="viewProfile(event)"
-                >
-                    View Profile
-                </button>
-
-                <button
-                    class="profileOption"
-                    onclick="signOut(event)"
-                >
-                    Sign Out
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <!-- SIDEBAR -->
-
-    <div
-        class="sidebar"
-        id="sidebar"
-    >
-
-        <a href="shop.html">
-            Shop
-        </a>
-
-        <a href="customazition.html">
-            Customization
-        </a>
-
-        <a href="settings.html">
-            Settings
-        </a>
-
-    </div>
-
-
-    <!-- PROFILE -->
-
-    <main class="profilePage">
-
-        <section class="profileTop">
-
-            <div class="identity">
-
-                <img
-                    id="bigAvatar"
-                    class="bigAvatar"
-                    src=""
-                    alt="Profile picture"
-                >
-
-                <div class="identityName">
-
-                    <span
-                        id="displayName"
-                        class="name"
-                    >
+                <div class="display-name-row">
+                    <div id="displayName" class="display-name">
                         Player
-                    </span>
+                    </div>
 
-                    <span
-                        id="bigVerificationBadge"
+                    <div
+                        id="verifiedBadge"
                         class="verified"
                         style="display: none;"
                     >
                         <span>✓</span>
-                    </span>
-
+                    </div>
                 </div>
 
             </div>
 
+            <!-- SAME CHARACTER PREVIEW -->
 
-            <div
-                id="characterPreview"
-                class="characterPreview"
-            >
-                Character
+            <div class="character-preview">
+                <div class="character" id="characterPreview"></div>
             </div>
 
-        </section>
-
+        </div>
 
         <div class="divider"></div>
 
+        <!-- CURRENTLY WEARING -->
 
-        <h2>
+        <h2 class="section-title">
             Currently wearing
         </h2>
 
-        <div
-            id="wearing"
-            class="wearing"
-        >
-            Nothing equipped.
+        <div id="wearing" class="wearing">
+            <span class="empty">
+                Default Gray
+            </span>
         </div>
-
 
         <div class="divider"></div>
 
+        <!-- BIO -->
 
-        <h2>
+        <h2 class="section-title">
             Bio
         </h2>
 
-        <div
-            id="bio"
-            class="bio"
-        >
-            <span class="emptyBio">
+        <div id="bio" class="bio">
+            <span class="empty">
                 No bio yet.
             </span>
         </div>
 
-    </main>
+    </div>
+
+</div>
+
+<script>
+
+const SUPABASE_URL =
+    "https://dpcixdjggpulxlekrqqk.supabase.co";
+
+const SUPABASE_KEY =
+    "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
+
+const db = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
 
 
-    <script>
+/* VERIFIED USERS */
 
-        const SUPABASE_URL =
-            "https://dpcixdjggpulxlekrqqk.supabase.co";
+const VERIFIED_UIDS = [
+    "ca2cdea0-9fbd-4380-a34b-e505540ade35"
+];
 
-        const SUPABASE_KEY =
-            "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
 
-        const VERIFIED_UIDS = [
-            "ca2cdea0-9fbd-4380-a34b-e505540ade35"
-        ];
+/* SIDEBAR */
 
-        const db = supabase.createClient(
-            SUPABASE_URL,
-            SUPABASE_KEY
+function toggleSidebar() {
+    document
+        .getElementById("sidebar")
+        .classList.toggle("open");
+}
+
+
+/* LOAD PROFILE */
+
+async function loadProfile() {
+
+    const {
+        data: {
+            session
+        }
+    } = await db.auth.getSession();
+
+    if (!session) {
+        window.location.href = "index.html";
+        return;
+    }
+
+    const currentUser = session.user;
+
+    /* DISCORD DISPLAY NAME */
+
+    const metadata = currentUser.user_metadata || {};
+
+    const displayName =
+        metadata.full_name ||
+        metadata.name ||
+        metadata.global_name ||
+        metadata.preferred_username ||
+        "Player";
+
+    document.getElementById("displayName").textContent =
+        displayName;
+
+
+    /* DISCORD PROFILE PICTURE */
+
+    let avatarUrl =
+        metadata.avatar_url ||
+        metadata.picture ||
+        "";
+
+    if (avatarUrl) {
+        document.getElementById("profilePfp").src =
+            avatarUrl;
+    }
+
+
+    /* VERIFIED BADGE */
+
+    if (VERIFIED_UIDS.includes(currentUser.id)) {
+        document.getElementById("verifiedBadge").style.display =
+            "inline-flex";
+    }
+
+
+    /* LOAD DATABASE PROFILE */
+
+    const {
+        data,
+        error
+    } = await db
+        .from("profiles")
+        .select("bio, owned")
+        .eq("uuid", currentUser.id)
+        .single();
+
+    if (error) {
+        console.error(
+            "Failed to load profile:",
+            error
         );
+        return;
+    }
 
 
-        let currentUser = null;
+    /* BIO */
 
+    const bioElement =
+        document.getElementById("bio");
 
-        function toggleMenu() {
+    if (data.bio && data.bio.trim() !== "") {
 
-            document
-                .getElementById("sidebar")
-                .classList.toggle("open");
-        }
+        bioElement.textContent =
+            data.bio;
 
+    } else {
 
-        async function loginWithDiscord() {
+        bioElement.innerHTML =
+            '<span class="empty">No bio yet.</span>';
 
-            const { error } =
-                await db.auth.signInWithOAuth({
+    }
 
-                    provider: "discord",
 
-                    options: {
-                        redirectTo:
-                            "https://amberfoxterry.github.io/FoxxyDen/profile.html"
-                    }
+    /* OWNED ITEMS */
 
-                });
+    /*
+        For now the character is always
+        the default gray character.
 
-            if (error) {
-                alert(error.message);
-            }
-        }
+        Later this is where the owned/equipped
+        items can be used to build the character.
+    */
 
+    const wearingElement =
+        document.getElementById("wearing");
 
-        function toggleProfileMenu() {
+    wearingElement.innerHTML =
+        '<span class="empty">Default Gray</span>';
 
-            document
-                .getElementById("profileMenu")
-                .classList.toggle("open");
-        }
+}
 
 
-        function viewProfile(event) {
+/* START */
 
-            event.stopPropagation();
+loadProfile();
 
-            window.location.href =
-                "profile.html";
-        }
-
-
-        async function signOut(event) {
-
-            event.stopPropagation();
-
-            const { error } =
-                await db.auth.signOut();
-
-            if (error) {
-
-                alert(error.message);
-                return;
-            }
-
-            window.location.href =
-                "index.html";
-        }
-
-
-        async function loadAccount() {
-
-            const {
-                data: { session }
-            } = await db.auth.getSession();
-
-            if (!session) {
-                return;
-            }
-
-            currentUser = session.user;
-
-            const metadata =
-                currentUser.user_metadata || {};
-
-
-            const displayName =
-                metadata.global_name ||
-                metadata.custom_claims?.global_name ||
-                metadata.full_name ||
-                metadata.name ||
-                "Player";
-
-
-            const avatar =
-                metadata.avatar_url ||
-                metadata.picture ||
-                "";
-
-
-            document
-                .getElementById("loginButton")
-                .style.display = "none";
-
-
-            document
-                .getElementById("profile")
-                .style.display = "flex";
-
-
-            document
-                .getElementById("profileName")
-                .textContent = displayName;
-
-
-            if (avatar) {
-
-                document
-                    .getElementById("profilePic")
-                    .src = avatar;
-
-                document
-                    .getElementById("bigAvatar")
-                    .src = avatar;
-            }
-
-
-            document
-                .getElementById("displayName")
-                .textContent = displayName;
-
-
-            if (VERIFIED_UIDS.includes(currentUser.id)) {
-
-                document
-                    .getElementById("verificationBadge")
-                    .style.display = "inline-flex";
-
-                document
-                    .getElementById("bigVerificationBadge")
-                    .style.display = "inline-flex";
-            }
-
-
-            await loadProfile();
-        }
-
-
-        async function loadProfile() {
-
-            if (!currentUser) {
-                return;
-            }
-
-
-            const { data, error } =
-                await db
-                    .from("profiles")
-                    .select("bio, owned")
-                    .eq("uuid", currentUser.id)
-                    .single();
-
-
-            if (error) {
-
-                console.error(
-                    "Could not load profile:",
-                    error
-                );
-
-                return;
-            }
-
-
-            const bioElement =
-                document.getElementById("bio");
-
-
-            if (data.bio && data.bio.trim() !== "") {
-
-                bioElement.textContent =
-                    data.bio;
-
-            } else {
-
-                bioElement.innerHTML =
-                    '<span class="emptyBio">No bio yet.</span>';
-            }
-
-
-            /*
-                Character rendering will be connected
-                to the owned/equipment system later.
-
-                data.owned contains the user's owned items.
-            */
-        }
-
-
-        document.addEventListener(
-            "click",
-            function(event) {
-
-                const account =
-                    document.getElementById("account");
-
-                if (!account.contains(event.target)) {
-
-                    document
-                        .getElementById("profileMenu")
-                        .classList
-                        .remove("open");
-                }
-
-            }
-        );
-
-
-        loadAccount();
-
-    </script>
+</script>
 
 </body>
 </html>
