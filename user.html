@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>FoxxyDen - Profile</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: white;
+            font-family: Arial, Helvetica, sans-serif;
+            color: #111;
+        }
+
+        /* TOP BAR */
+
+        .topbar {
+            width: 100%;
+            height: 64px;
+            background: #f3f3f3;
+            display: flex;
+            align-items: center;
+            padding-left: 18px;
+            border-bottom: 1px solid #dedede;
+            position: relative;
+        }
+
+        .menu {
+            width: 28px;
+            height: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .menu span {
+            width: 100%;
+            height: 3px;
+            background: #111;
+            border-radius: 2px;
+        }
+
+        .logo {
+            margin-left: 18px;
+            font-size: 25px;
+            font-weight: 900;
+            color: #111;
+            letter-spacing: -1px;
+            cursor: pointer;
+        }
+
+        /* ACCOUNT */
+
+        #account {
+            position: absolute;
+            right: 18px;
+            top: 8px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+        }
+
+        #loginButton {
+            background: #5865F2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 11px 16px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #loginButton:hover {
+            background: #4752C4;
+        }
+
+        #profile {
+            display: none;
+            align-items: center;
+            gap: 9px;
+            padding: 5px 10px 5px 5px;
+            border-radius: 25px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #profile:hover {
+            background: #e5e5e5;
+        }
+
+        #profilePic {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ddd;
+        }
+
+        #profileNameContainer {
+            display: flex;
+            align-items: center;
+        }
+
+        #profileName {
+            font-size: 15px;
+            font-weight: 700;
+            color: #111;
+            max-width: 160px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* VERIFICATION */
+
+        .verified {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            margin-left: 5px;
+            flex-shrink: 0;
+        }
+
+        .verified::before {
+            content: "♥";
+            position: absolute;
+            color: #ff69b4;
+            font-size: 26px;
+            line-height: 26px;
+        }
+
+        .verified span {
+            position: relative;
+            z-index: 1;
+            color: white;
+            font-size: 12px;
+            font-weight: 900;
+            line-height: 1;
+            transform: translateY(-1px);
+        }
+
+        /* PROFILE MENU */
+
+        #profileMenu {
+            display: none;
+            position: absolute;
+            top: 56px;
+            right: 0;
+            width: 190px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        #profileMenu.open {
+            display: block;
+        }
+
+        .profileOption {
+            width: 100%;
+            padding: 14px 16px;
+            background: white;
+            border: none;
+            text-align: left;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .profileOption:hover {
+            background: #f1f1f1;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            position: fixed;
+            top: 64px;
+            left: -280px;
+            width: 280px;
+            height: calc(100vh - 64px);
+            background: #f5f5f5;
+            border-right: 1px solid #ddd;
+            transition: left 0.2s ease;
+            padding: 20px 0;
+            z-index: 10;
+        }
+
+        .sidebar.open {
+            left: 0;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 18px 24px;
+            color: #111;
+            text-decoration: none;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .sidebar a:hover {
+            background: #e5e5e5;
+        }
+
+        /* PROFILE CONTENT */
+
+        .profilePage {
+            width: 90%;
+            max-width: 1100px;
+            margin: 140px auto 80px auto;
+        }
+
+        .profileTop {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 60px;
+        }
+
+        .identity {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .bigAvatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #ddd;
+        }
+
+        .identityName {
+            display: flex;
+            align-items: center;
+        }
+
+        .identityName span.name {
+            font-size: 32px;
+            font-weight: 900;
+        }
+
+        /* CHARACTER PREVIEW */
+
+        .characterPreview {
+            width: 260px;
+            height: 260px;
+            border: 1px solid #ddd;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* SAME DEFAULT GRAY PREVIEW AS CUSTOMIZATION */
+
+        .characterPreview .character {
+            width: 150px;
+            height: 150px;
+            background: #999;
+            border-radius: 4px;
+        }
+
+        .divider {
+            width: 100%;
+            height: 1px;
+            background: #ddd;
+            margin: 50px 0 30px 0;
+        }
+
+        h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        /* CURRENTLY WEARING */
+
+        .wearing {
+            min-height: 100px;
+            display: flex;
+            align-items: flex-start;
+            color: #111;
+            font-size: 16px;
+        }
+
+        /* SAME STYLE OF ITEM BOX AS CUSTOMIZATION */
+
+        .wearingItem {
+            width: 180px;
+            border: 1px solid #ddd;
+            background: #f5f5f5;
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .wearingItemPreview {
+            width: 100%;
+            height: 150px;
+            background: #e5e5e5;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        .wearingItemPreview .grayItem {
+            width: 90px;
+            height: 90px;
+            background: #999;
+            border-radius: 4px;
+        }
+
+        .wearingItemName {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        /* BIO */
+
+        .bio {
+            min-height: 80px;
+            font-size: 17px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            color: #333;
+        }
+
+        .emptyBio {
+            color: #999;
+            font-style: italic;
+        }
+
+        @media (max-width: 700px) {
+
+            .profileTop {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .characterPreview {
+                width: 100%;
+                max-width: 260px;
+            }
+
+            .profilePage {
+                margin-top: 90px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- TOP BAR -->
+
+    <div class="topbar">
+
+        <div class="menu" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+
+        <div class="logo" onclick="location.href='index.html'">
+            FoxxyDen
+        </div>
+
+        <div id="account">
+
+            <button
+                id="loginButton"
+                onclick="loginWithDiscord()"
+            >
+                LOGIN WITH DISCORD
+            </button>
+
+            <div
+                id="profile"
+                onclick="toggleProfileMenu()"
+            >
+
+                <img
+                    id="profilePic"
+                    src=""
+                    alt="Profile picture"
+                >
+
+                <div id="profileNameContainer">
+
+                    <span id="profileName"></span>
+
+                    <span
+                        id="verificationBadge"
+                        class="verified"
+                        style="display: none;"
+                    >
+                        <span>✓</span>
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div id="profileMenu">
+
+                <button
+                    class="profileOption"
+                    onclick="viewProfile(event)"
+                >
+                    View Profile
+                </button>
+
+                <button
+                    class="profileOption"
+                    onclick="signOut(event)"
+                >
+                    Sign Out
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- SIDEBAR -->
+
+    <div
+        class="sidebar"
+        id="sidebar"
+    >
+
+        <a href="shop.html">
+            Shop
+        </a>
+
+        <a href="customazition.html">
+            Customization
+        </a>
+
+        <a href="settings.html">
+            Settings
+        </a>
+
+    </div>
+
+
+    <!-- PROFILE -->
+
+    <main class="profilePage">
+
+        <section class="profileTop">
+
+            <div class="identity">
+
+                <img
+                    id="bigAvatar"
+                    class="bigAvatar"
+                    src=""
+                    alt="Profile picture"
+                >
+
+                <div class="identityName">
+
+                    <span
+                        id="displayName"
+                        class="name"
+                    >
+                        Player
+                    </span>
+
+                    <span
+                        id="bigVerificationBadge"
+                        class="verified"
+                        style="display: none;"
+                    >
+                        <span>✓</span>
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="characterPreview"
+                class="characterPreview"
+            >
+                <div class="character"></div>
+            </div>
+
+        </section>
+
+
+        <div class="divider"></div>
+
+
+        <h2>
+            Currently wearing
+        </h2>
+
+        <div
+            id="wearing"
+            class="wearing"
+        >
+
+            <div class="wearingItem">
+
+                <div class="wearingItemPreview">
+
+                    <div class="grayItem"></div>
+
+                </div>
+
+                <div class="wearingItemName">
+                    Default Gray
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <div class="divider"></div>
+
+
+        <h2>
+            Bio
+        </h2>
+
+        <div
+            id="bio"
+            class="bio"
+        >
+            <span class="emptyBio">
+                No bio yet.
+            </span>
+        </div>
+
+    </main>
+
+
+    <script>
+
+        const SUPABASE_URL =
+            "https://dpcixdjggpulxlekrqqk.supabase.co";
+
+        const SUPABASE_KEY =
+            "sb_publishable_-312NjvVe6aLDGKsmMuZgQ_JfozDccs";
+
+        const VERIFIED_UIDS = [
+            "ca2cdea0-9fbd-4380-a34b-e505540ade35"
+        ];
+
+        const db = supabase.createClient(
+            SUPABASE_URL,
+            SUPABASE_KEY
+        );
+
+
+        let currentUser = null;
+
+
+        function toggleMenu() {
+
+            document
+                .getElementById("sidebar")
+                .classList.toggle("open");
+        }
+
+
+        async function loginWithDiscord() {
+
+            const { error } =
+                await db.auth.signInWithOAuth({
+
+                    provider: "discord",
+
+                    options: {
+                        redirectTo:
+                            "https://amberfoxterry.github.io/FoxxyDen/profile.html"
+                    }
+
+                });
+
+            if (error) {
+                alert(error.message);
+            }
+        }
+
+
+        function toggleProfileMenu() {
+
+            document
+                .getElementById("profileMenu")
+                .classList.toggle("open");
+        }
+
+
+        function viewProfile(event) {
+
+            event.stopPropagation();
+
+            window.location.href =
+                "profile.html";
+        }
+
+
+        async function signOut(event) {
+
+            event.stopPropagation();
+
+            const { error } =
+                await db.auth.signOut();
+
+            if (error) {
+
+                alert(error.message);
+                return;
+            }
+
+            window.location.href =
+                "index.html";
+        }
+
+
+        async function loadAccount() {
+
+            const {
+                data: { session }
+            } = await db.auth.getSession();
+
+            if (!session) {
+                return;
+            }
+
+            currentUser = session.user;
+
+            const metadata =
+                currentUser.user_metadata || {};
+
+
+            /*
+                Discord Display Name.
+                We intentionally do NOT use user_name.
+            */
+
+            const displayName =
+                metadata.global_name ||
+                metadata.custom_claims?.global_name ||
+                metadata.full_name ||
+                metadata.name ||
+                "Player";
+
+
+            const avatar =
+                metadata.avatar_url ||
+                metadata.picture ||
+                "";
+
+
+            document
+                .getElementById("loginButton")
+                .style.display = "none";
+
+
+            document
+                .getElementById("profile")
+                .style.display = "flex";
+
+
+            document
+                .getElementById("profileName")
+                .textContent = displayName;
+
+
+            if (avatar) {
+
+                document
+                    .getElementById("profilePic")
+                    .src = avatar;
+
+                document
+                    .getElementById("bigAvatar")
+                    .src = avatar;
+            }
+
+
+            document
+                .getElementById("displayName")
+                .textContent = displayName;
+
+
+            if (VERIFIED_UIDS.includes(currentUser.id)) {
+
+                document
+                    .getElementById("verificationBadge")
+                    .style.display = "inline-flex";
+
+                document
+                    .getElementById("bigVerificationBadge")
+                    .style.display = "inline-flex";
+            }
+
+
+            await loadProfile();
+        }
+
+
+        async function loadProfile() {
+
+            if (!currentUser) {
+                return;
+            }
+
+
+            const { data, error } =
+                await db
+                    .from("profiles")
+                    .select("bio, owned")
+                    .eq("uuid", currentUser.id)
+                    .single();
+
+
+            if (error) {
+
+                console.error(
+                    "Could not load profile:",
+                    error
+                );
+
+                return;
+            }
+
+
+            const bioElement =
+                document.getElementById("bio");
+
+
+            if (data.bio && data.bio.trim() !== "") {
+
+                bioElement.textContent =
+                    data.bio;
+
+            } else {
+
+                bioElement.innerHTML =
+                    '<span class="emptyBio">No bio yet.</span>';
+            }
+
+        }
+
+
+        document.addEventListener(
+            "click",
+            function(event) {
+
+                const account =
+                    document.getElementById("account");
+
+                if (!account.contains(event.target)) {
+
+                    document
+                        .getElementById("profileMenu")
+                        .classList
+                        .remove("open");
+                }
+
+            }
+        );
+
+
+        loadAccount();
+
+    </script>
+
+</body>
+</html>
